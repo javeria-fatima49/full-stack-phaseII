@@ -1,0 +1,144 @@
+# Docker Compose Configuration for Todo App Full Stack
+#
+# This file orchestrates the frontend, backend, and database services
+# for local development and testing.
+#
+# Usage:
+#   docker compose up          # Start all services
+#   docker compose down        # Stop all services
+#   docker compose up --build  # Rebuild and start
+#   docker compose logs -f     # View logs
+
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:16-alpine
+    container_name: todo-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-todo_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - todo-network
+
+  # Backend API (FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - PYTHON_VERSION=3.11
+    container_name: todo-backend
+    restart: unless-stopped
+    environment:
+      # Database Configuration
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@database:5432/${POSTGRES_DB:-todo_db}
+
+      # API Configuration
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      API_RELOAD: ${API_RELOAD:-true}
+
+      # CORS Configuration
+      CORS_ORIGINS: http://localhost:3000,http://frontend:3000
+
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-min-32-characters-long}
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRATION: 3600
+
+      # Environment
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-true}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+      - backend_cache:/app/.cache
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - todo-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NODE_VERSION=18
+        - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+    container_name: todo-frontend
+    restart: unless-stopped
+    environment:
+      # API Configuration
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
+
+      # Better Auth Configuration
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-your-secret-key-here-min-32-chars}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+
+      # Environment
+      NODE_ENV: ${NODE_ENV:-development}
+
+      # Next.js Configuration
+      NEXT_TELEMETRY_DISABLED: 1
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+      - frontend_cache:/app/.next/cache
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - todo-network
+    command: npm run dev
+
+# Named volumes for data persistence
+volumes:
+  postgres_data:
+    driver: local
+    name: todo_postgres_data
+  backend_cache:
+    driver: local
+    name: todo_backend_cache
+  frontend_cache:
+    driver: local
+    name: todo_frontend_cache
+
+# Network for service communication
+networks:
+  todo-network:
+    driver: bridge
+    name: todo-network
