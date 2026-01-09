@@ -12,30 +12,7 @@
 version: '3.9'
 
 services:
-  # PostgreSQL Database
-  database:
-    image: postgres:16-alpine
-    container_name: todo-database
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-todo_db}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_HOST_AUTH_METHOD: trust
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - todo-network
-
-  # Backend API (FastAPI)
+  # Backend API (FastAPI) - Connects directly to Neon PostgreSQL
   backend:
     build:
       context: ./backend
@@ -45,11 +22,11 @@ services:
     container_name: todo-backend
     restart: unless-stopped
     environment:
-      # Database Configuration
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@database:5432/${POSTGRES_DB:-todo_db}
+      # Database Configuration - Using Neon PostgreSQL directly
+      DATABASE_URL: ${DATABASE_URL:-postgresql://neondb_owner:npg_0Oe1uvdXGDAt@ep-super-voice-a42icjpb-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require}
 
       # Authentication Configuration (shared with frontend)
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-your-secret-key-min-32-characters-long}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-MySecureRandomString123456789012345678901234567890}
 
       # CORS Configuration
       FRONTEND_URL: http://localhost:3000
@@ -68,9 +45,6 @@ services:
     volumes:
       - ./backend:/app
       - backend_cache:/app/.cache
-    depends_on:
-      database:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -96,7 +70,7 @@ services:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
 
       # Better Auth Configuration
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-your-secret-key-here-min-32-chars}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-MySecureRandomString123456789012345678901234567890}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
 
       # Environment
@@ -126,9 +100,6 @@ services:
 
 # Named volumes for data persistence
 volumes:
-  postgres_data:
-    driver: local
-    name: todo_postgres_data
   backend_cache:
     driver: local
     name: todo_backend_cache

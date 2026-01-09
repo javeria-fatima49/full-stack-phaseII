@@ -23,6 +23,7 @@ import { TaskFilterStatus, TaskSortField, TaskSortOrder, filterAndSortTasks } fr
 import { DEFAULT_TASK_FILTERS } from '@/types/ui';
 import { Plus, ListX } from 'lucide-react';
 import { useCallback, useMemo, Suspense } from 'react';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // ============================================================================
 // Loading Component
@@ -323,8 +324,10 @@ function TasksPageContent() {
  */
 export default function TasksPage() {
   return (
-    <Suspense fallback={<TasksPageSkeleton />}>
-      <TasksPageContent />
-    </Suspense>
+    <ProtectedRoute>
+      <Suspense fallback={<TasksPageSkeleton />}>
+        <TasksPageContent />
+      </Suspense>
+    </ProtectedRoute>
   );
 }

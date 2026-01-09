@@ -25,6 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { useToast } from '@/hooks/use-toast';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface TaskDetailPageProps {
   params: {
@@ -222,117 +223,119 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   }
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-8">
-      {/* Back to Tasks Link */}
-      <div className="mb-6">
-        <Link
-          href="/tasks"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Tasks
-        </Link>
-      </div>
+    <ProtectedRoute>
+      <div className="container mx-auto max-w-4xl px-4 py-8">
+        {/* Back to Tasks Link */}
+        <div className="mb-6">
+          <Link
+            href="/tasks"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Tasks
+          </Link>
+        </div>
 
-      {/* Task Details Card */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between gap-4">
-            <CardTitle className="text-3xl font-bold flex items-center gap-3">
-              {/* Status Icon with Animation */}
-              <div className="relative">
-                {task.completed ? (
-                  <CheckCircle2 className="h-8 w-8 text-green-600" />
-                ) : (
-                  <Circle className="h-8 w-8 text-muted-foreground" />
-                )}
-
-                {/* Checkmark Animation (T058) */}
-                <AnimatePresence>
-                  {showCheckmark && (
-                    <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1.5, opacity: 1 }}
-                      exit={{ scale: 2, opacity: 0 }}
-                      transition={{ duration: 0.5 }}
-                      className="absolute inset-0 flex items-center justify-center"
-                    >
-                      <CheckCircle2 className="h-8 w-8 text-green-600" />
-                    </motion.div>
+        {/* Task Details Card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-start justify-between gap-4">
+              <CardTitle className="text-3xl font-bold flex items-center gap-3">
+                {/* Status Icon with Animation */}
+                <div className="relative">
+                  {task.completed ? (
+                    <CheckCircle2 className="h-8 w-8 text-green-600" />
+                  ) : (
+                    <Circle className="h-8 w-8 text-muted-foreground" />
                   )}
-                </AnimatePresence>
+
+                  {/* Checkmark Animation (T058) */}
+                  <AnimatePresence>
+                    {showCheckmark && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1.5, opacity: 1 }}
+                        exit={{ scale: 2, opacity: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute inset-0 flex items-center justify-center"
+                      >
+                        <CheckCircle2 className="h-8 w-8 text-green-600" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <span className={task.completed ? 'line-through text-muted-foreground' : ''}>
+                  {task.title}
+                </span>
+              </CardTitle>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {/* Task Description */}
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-2">
+                Description
+              </h3>
+              {task.description ? (
+                <p className="text-base whitespace-pre-wrap">{task.description}</p>
+              ) : (
+                <p className="text-muted-foreground italic">No description provided</p>
+              )}
+            </div>
+
+            {/* Task Metadata */}
+            <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>
+                  Created: <span className="text-foreground">{formatDate(task.created_at)}</span>
+                </span>
               </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>
+                  Updated: <span className="text-foreground">{formatDate(task.updated_at)}</span>
+                </span>
+              </div>
+            </div>
 
-              <span className={task.completed ? 'line-through text-muted-foreground' : ''}>
-                {task.title}
-              </span>
-            </CardTitle>
-          </div>
-        </CardHeader>
-
-        <CardContent className="space-y-6">
-          {/* Task Description */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-              Description
-            </h3>
-            {task.description ? (
-              <p className="text-base whitespace-pre-wrap">{task.description}</p>
-            ) : (
-              <p className="text-muted-foreground italic">No description provided</p>
-            )}
-          </div>
-
-          {/* Task Metadata */}
-          <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>
-                Created: <span className="text-foreground">{formatDate(task.created_at)}</span>
+            {/* Status Badge */}
+            <div>
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                  task.completed
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                }`}
+              >
+                {task.completed ? 'Completed' : 'Pending'}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span>
-                Updated: <span className="text-foreground">{formatDate(task.updated_at)}</span>
-              </span>
+
+            {/* Task Actions (T055) */}
+            <div className="pt-4 border-t">
+              <TaskActions
+                isCompleted={task.completed}
+                isLoading={isTogglingComplete || isDeleting}
+                onEdit={handleEdit}
+                onDelete={handleDeleteClick}
+                onToggleComplete={handleToggleComplete}
+              />
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Status Badge */}
-          <div>
-            <span
-              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                task.completed
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                  : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-              }`}
-            >
-              {task.completed ? 'Completed' : 'Pending'}
-            </span>
-          </div>
-
-          {/* Task Actions (T055) */}
-          <div className="pt-4 border-t">
-            <TaskActions
-              isCompleted={task.completed}
-              isLoading={isTogglingComplete || isDeleting}
-              onEdit={handleEdit}
-              onDelete={handleDeleteClick}
-              onToggleComplete={handleToggleComplete}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmDialog
-        open={showDeleteDialog}
-        taskTitle={task.title}
-        isDeleting={isDeleting}
-        onClose={handleDeleteCancel}
-        onConfirm={handleDeleteConfirm}
-      />
-    </div>
+        {/* Delete Confirmation Dialog */}
+        <DeleteConfirmDialog
+          open={showDeleteDialog}
+          taskTitle={task.title}
+          isDeleting={isDeleting}
+          onClose={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+        />
+      </div>
+    </ProtectedRoute>
   );
 }

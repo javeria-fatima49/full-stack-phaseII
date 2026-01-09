@@ -4,7 +4,7 @@ All endpoints require JWT authentication and enforce user isolation.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select
+from sqlmodel import select
 from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
@@ -12,6 +12,7 @@ from datetime import datetime
 from app.models.task import Task
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
 from app.api.deps import get_session, get_current_user
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
@@ -23,7 +24,7 @@ async def list_tasks(
     sortField: Optional[str] = "created_at",
     sortOrder: Optional[str] = "desc",
     current_user_id: str = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """
     List all tasks for authenticated user with filtering and sorting.
@@ -60,7 +61,8 @@ async def list_tasks(
         query = query.order_by(sort_column.desc())
 
     # Execute query
-    tasks = session.exec(query).all()
+    result = await session.exec(query)
+    tasks = result.all()
 
     return tasks
 
@@ -69,7 +71,7 @@ async def list_tasks(
 async def get_task(
     id: UUID,
     current_user_id: str = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Get a single task by ID for the authenticated user.
@@ -84,11 +86,12 @@ async def get_task(
     - 404: Task not found or belongs to another user
     """
     # Query with user_id filter for security
-    task = session.exec(
+    result = await session.exec(
         select(Task)
         .where(Task.id == id)
         .where(Task.user_id == current_user_id)
-    ).first()
+    )
+    task = result.first()
 
     if not task:
         raise HTTPException(
@@ -103,7 +106,7 @@ async def get_task(
 async def create_task(
     task_data: TaskCreate,
     current_user_id: str = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Create a new task for the authenticated user.
@@ -130,8 +133,8 @@ async def create_task(
 
     # Save to database
     session.add(task)
-    session.commit()
-    session.refresh(task)
+    await session.commit()
+    await session.refresh(task)
 
     return task
 
@@ -141,7 +144,7 @@ async def update_task(
     id: UUID,
     task_data: TaskUpdate,
     current_user_id: str = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Update an existing task for the authenticated user.
@@ -163,11 +166,12 @@ async def update_task(
     - 400: Validation error
     """
     # Fetch task with user_id filter
-    task = session.exec(
+    result = await session.exec(
         select(Task)
         .where(Task.id == id)
         .where(Task.user_id == current_user_id)
-    ).first()
+    )
+    task = result.first()
 
     if not task:
         raise HTTPException(
@@ -188,8 +192,8 @@ async def update_task(
 
     # Save changes
     session.add(task)
-    session.commit()
-    session.refresh(task)
+    await session.commit()
+    await session.refresh(task)
 
     return task
 
@@ -198,7 +202,7 @@ async def update_task(
 async def delete_task(
     id: UUID,
     current_user_id: str = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Delete a task for the authenticated user.
@@ -213,11 +217,12 @@ async def delete_task(
     - 404: Task not found or belongs to another user
     """
     # Fetch task with user_id filter
-    task = session.exec(
+    result = await session.exec(
         select(Task)
         .where(Task.id == id)
         .where(Task.user_id == current_user_id)
-    ).first()
+    )
+    task = result.first()
 
     if not task:
         raise HTTPException(
@@ -226,8 +231,8 @@ async def delete_task(
         )
 
     # Delete task (hard delete)
-    session.delete(task)
-    session.commit()
+    await session.delete(task)
+    await session.commit()
 
     return None
 
@@ -236,7 +241,7 @@ async def delete_task(
 async def toggle_task_completion(
     id: UUID,
     current_user_id: str = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Toggle the completion status of a task (pending ↔ completed).
@@ -251,11 +256,12 @@ async def toggle_task_completion(
     - 404: Task not found or belongs to another user
     """
     # Fetch task with user_id filter
-    task = session.exec(
+    result = await session.exec(
         select(Task)
         .where(Task.id == id)
         .where(Task.user_id == current_user_id)
-    ).first()
+    )
+    task = result.first()
 
     if not task:
         raise HTTPException(
@@ -269,7 +275,7 @@ async def toggle_task_completion(
 
     # Save changes
     session.add(task)
-    session.commit()
-    session.refresh(task)
+    await session.commit()
+    await session.refresh(task)
 
     return task

@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { CreateTaskFormData } from '@/lib/validation';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // ============================================================================
 // Component
@@ -61,41 +62,43 @@ export default function CreateTaskPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/tasks"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Back to task list"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Tasks</span>
-            </Link>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="border-b bg-card">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center gap-4">
+              <Link
+                href="/tasks"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Back to task list"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Tasks</span>
+              </Link>
+            </div>
+            <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
+              Create New Task
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Add a new task to your list. Fill in the details below.
+            </p>
           </div>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
-            Create New Task
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Add a new task to your list. Fill in the details below.
-          </p>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="mx-auto max-w-2xl">
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
-            <TaskForm
-              onSubmit={handleCreateTask}
-              submitLabel="Create Task"
-              isEditMode={false}
-            />
+        {/* Main Content */}
+        <main className="container mx-auto px-4 py-8">
+          <div className="mx-auto max-w-2xl">
+            <div className="rounded-lg border bg-card p-6 shadow-sm">
+              <TaskForm
+                onSubmit={handleCreateTask}
+                submitLabel="Create Task"
+                isEditMode={false}
+              />
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </ProtectedRoute>
   );
 }

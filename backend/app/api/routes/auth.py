@@ -3,7 +3,7 @@ Authentication routes for user registration, login, and logout.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Response
-from sqlmodel import Session, select
+from sqlmodel import select
 from datetime import datetime
 
 from app.database import get_session
@@ -15,7 +15,8 @@ from app.schemas.auth import (
     UserResponse,
     MessageResponse
 )
-from app.core.auth import hash_password, verify_password, create_access_token, get_current_user
+from app.core.auth import hash_password, verify_password, get_current_user
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -31,7 +32,7 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 async def signup(
     user_data: UserSignup,
     response: Response,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Register a new user.
@@ -51,7 +52,8 @@ async def signup(
     try:
         # Check if email already exists
         statement = select(User).where(User.email == user_data.email)
-        existing_user = session.exec(statement).first()
+        result = await session.exec(statement)
+        existing_user = result.first()
 
         if existing_user:
             raise HTTPException(
@@ -72,32 +74,49 @@ async def signup(
         )
 
         session.add(new_user)
-        session.commit()
-        session.refresh(new_user)
+        await session.commit()
+        await session.refresh(new_user)
 
-        # Generate JWT token
-        token = create_access_token(user_id=str(new_user.id))
+        # For Better Auth compatibility, we'll set a session-like cookie
+        # In a real Better Auth implementation, this would be handled by the library
+        # For now, we'll simulate the Better Auth cookie format
+        import secrets
+        import time
+        import json
+        from jose import jwt
 
-        # Optionally set cookie for backward compatibility
+        # Create a session token similar to what Better Auth would create
+        session_data = {
+            "userId": str(new_user.id),
+            "expiresAt": int(time.time()) + (30 * 24 * 60 * 60),  # 30 days
+            "createdAt": int(time.time()),
+        }
+
+        # In a real implementation, Better Auth would handle JWT signing
+        # For now, we'll use the configured secret
+        from app.config import settings
+        session_token = jwt.encode(session_data, settings.better_auth_secret, algorithm="HS256")
+
+        # Set the Better Auth-style cookie
         response.set_cookie(
-            key="auth_token",
-            value=token,
+            key="better-auth.session_token",
+            value=session_token,
             httponly=True,
             secure=False,  # Set to True in production with HTTPS
             samesite="lax",
             max_age=30 * 24 * 60 * 60  # 30 days
         )
 
-        # Return token and user info
+        # Return user info (no token in response for Better Auth compatibility)
         return AuthResponse(
-            token=token,
+            token=session_token,  # Still return for compatibility
             user=UserResponse.model_validate(new_user)
         )
 
     except HTTPException:
         raise
     except Exception as e:
-        session.rollback()
+        await session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create user"
@@ -114,7 +133,7 @@ async def signup(
 async def signin(
     credentials: UserSignin,
     response: Response,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Login user with email and password.
@@ -133,7 +152,8 @@ async def signin(
     try:
         # Find user by email
         statement = select(User).where(User.email == credentials.email)
-        user = session.exec(statement).first()
+        result = await session.exec(statement)
+        user = result.first()
 
         if not user:
             raise HTTPException(
@@ -151,32 +171,47 @@ async def signin(
         # Update last login timestamp
         user.updated_at = datetime.utcnow()
         session.add(user)
-        session.commit()
-        session.refresh(user)
+        await session.commit()
+        await session.refresh(user)
 
-        # Generate JWT token
-        token = create_access_token(user_id=str(user.id))
+        # For Better Auth compatibility, we'll set a session-like cookie
+        # In a real Better Auth implementation, this would be handled by the library
+        # For now, we'll simulate the Better Auth cookie format
+        import time
+        from jose import jwt
 
-        # Optionally set cookie for backward compatibility
+        # Create a session token similar to what Better Auth would create
+        session_data = {
+            "userId": str(user.id),
+            "expiresAt": int(time.time()) + (30 * 24 * 60 * 60),  # 30 days
+            "createdAt": int(time.time()),
+        }
+
+        # In a real implementation, Better Auth would handle JWT signing
+        # For now, we'll use the configured secret
+        from app.config import settings
+        session_token = jwt.encode(session_data, settings.better_auth_secret, algorithm="HS256")
+
+        # Set the Better Auth-style cookie
         response.set_cookie(
-            key="auth_token",
-            value=token,
+            key="better-auth.session_token",
+            value=session_token,
             httponly=True,
             secure=False,  # Set to True in production with HTTPS
             samesite="lax",
             max_age=30 * 24 * 60 * 60  # 30 days
         )
 
-        # Return token and user info
+        # Return user info (no token in response for Better Auth compatibility)
         return AuthResponse(
-            token=token,
+            token=session_token,  # Still return for compatibility
             user=UserResponse.model_validate(user)
         )
 
     except HTTPException:
         raise
     except Exception as e:
-        session.rollback()
+        await session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to authenticate user"
@@ -225,7 +260,7 @@ async def signout(
 )
 async def get_me(
     user_id: str = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Get current authenticated user information.
@@ -242,7 +277,8 @@ async def get_me(
     try:
         # Find user by ID
         statement = select(User).where(User.id == user_id)
-        user = session.exec(statement).first()
+        result = await session.exec(statement)
+        user = result.first()
 
         if not user:
             raise HTTPException(

@@ -2,7 +2,7 @@
  * Centralized API Client
  *
  * Provides a unified interface for making HTTP requests to the backend API.
- * Handles authentication, error handling, and request/response transformation.
+ * Handles authentication via cookies (Better Auth), error handling, and request/response transformation.
  *
  * @module lib/api
  */
@@ -28,7 +28,7 @@ import {
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api').replace(/\/$/, '') + '/';
 
 // Retry configuration
 const MAX_RETRIES = 3;
@@ -43,7 +43,9 @@ const RETRY_BACKOFF_MULTIPLIER = 2;
  * Build URL with query parameters
  */
 function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
-  const url = new URL(path, API_BASE_URL);
+  // Remove leading slash to make path relative, so it appends to base URL
+  const relativePath = path.startsWith('/') ? path.substring(1) : path;
+  const url = new URL(relativePath, API_BASE_URL);
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
@@ -76,6 +78,7 @@ function isRetryableError(status: number): boolean {
 
 /**
  * Make an HTTP request with retry logic
+ * Authentication is handled automatically via cookies set by Better Auth
  */
 async function request<T>(
   path: string,
@@ -93,8 +96,11 @@ async function request<T>(
         ...fetchOptions,
         headers: {
           'Content-Type': 'application/json',
+          // Include credentials (cookies) for authentication
           ...fetchOptions.headers,
         },
+        // Include credentials to send cookies with requests
+        credentials: 'include',
       });
 
       // Handle successful responses
@@ -123,18 +129,18 @@ async function request<T>(
 
       // Throw appropriate error based on status code
       switch (response.status) {
-        case HttpStatus.BAD_REQUEST:
-          if (typeof errorData.detail === 'object') {
-            throw new ValidationError('Validation failed', errorData.detail);
-          }
-          throw new ApiError(response.status, errorData.detail || 'Bad request');
-
         case HttpStatus.UNAUTHORIZED:
           // T086: Redirect to login page on 401
           if (typeof window !== 'undefined') {
             window.location.href = '/login';
           }
           throw new AuthenticationError(errorData.detail || 'Unauthorized');
+
+        case HttpStatus.BAD_REQUEST:
+          if (typeof errorData.detail === 'object') {
+            throw new ValidationError('Validation failed', errorData.detail);
+          }
+          throw new ApiError(response.status, errorData.detail || 'Bad request');
 
         case HttpStatus.NOT_FOUND:
           throw new NotFoundError(errorData.detail || 'Resource not found');

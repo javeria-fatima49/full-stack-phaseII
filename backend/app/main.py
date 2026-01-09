@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from sqlalchemy import text
 import sys
 
 from app.config import settings
@@ -28,8 +29,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allow_headers=["*"] if settings.environment == "development" else ["Content-Type", "Authorization"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["*"] if settings.environment == "development" else ["Content-Type", "Authorization", "Set-Cookie", "Cookie"],
 )
 
 
@@ -81,11 +82,11 @@ async def startup_validation():
         settings.validate_settings()
 
         # Create database tables
-        create_db_and_tables()
+        await create_db_and_tables()
 
         # Test database connection
-        with engine.connect() as conn:
-            conn.execute("SELECT 1")
+        async with engine.begin() as conn:
+            await conn.execute(text("SELECT 1"))
 
         print(f"✓ Configuration validated")
         print(f"✓ Database connection successful")
@@ -113,8 +114,8 @@ async def health_check():
 async def database_health_check():
     """Database connectivity check"""
     try:
-        with engine.connect() as conn:
-            conn.execute("SELECT 1")
+        async with engine.begin() as conn:
+            await conn.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         return {

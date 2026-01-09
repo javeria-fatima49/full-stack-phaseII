@@ -5,6 +5,8 @@ Loads environment variables and validates configuration.
 
 from pydantic_settings import BaseSettings
 from typing import Optional
+import os
+from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -31,9 +33,10 @@ class Settings(BaseSettings):
     cors_origins: Optional[str] = None
 
     class Config:
-        env_file = ".env.local"
+        # Use absolute path to ensure the .env file is found
+        env_file = Path(__file__).parent.parent / ".env.local"
         env_file_encoding = "utf-8"
-        case_sensitive = False
+        case_sensitive = False  # Changed back to False to match standard env behavior
 
     @property
     def cors_origins_list(self) -> list[str]:
@@ -62,10 +65,17 @@ class Settings(BaseSettings):
                 raise ValueError("RELOAD must be false in production")
             if "localhost" in self.frontend_url:
                 raise ValueError("FRONTEND_URL cannot be localhost in production")
-            if "ssl=require" not in self.database_url:
+            if "ssl=require" not in self.database_url.lower():
                 raise ValueError("DATABASE_URL must include ssl=require in production")
 
 
 # Create global settings instance
-settings = Settings()
-settings.validate_settings()
+try:
+    settings = Settings()
+    settings.validate_settings()
+except Exception as e:
+    print(f"Configuration error: {e}")
+    print("Make sure .env.local file exists in the backend directory with required variables:")
+    print("- DATABASE_URL")
+    print("- BETTER_AUTH_SECRET")
+    raise

@@ -3,12 +3,14 @@ Database connection and session management.
 Uses SQLModel with async PostgreSQL driver.
 """
 
-from sqlmodel import SQLModel, create_engine, Session
+from sqlmodel import SQLModel
+from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine
 from app.config import settings
 
 
-# Create database engine
-engine = create_engine(
+# Create async database engine
+engine = create_async_engine(
     settings.database_url,
     echo=(settings.log_level == "DEBUG"),
     pool_size=settings.db_pool_size,
@@ -19,18 +21,20 @@ engine = create_engine(
 )
 
 
-def create_db_and_tables():
+async def create_db_and_tables():
     """
     Create all database tables.
     Called on application startup.
     """
-    SQLModel.metadata.create_all(engine)
+    async with engine.begin() as conn:
+        # Create tables
+        await conn.run_sync(SQLModel.metadata.create_all)
 
 
-def get_session():
+async def get_session():
     """
     Dependency for getting database session.
     Yields session and ensures it's closed after use.
     """
-    with Session(engine) as session:
+    async with AsyncSession(engine) as session:
         yield session

@@ -31,7 +31,7 @@ A modern, responsive, and accessible web frontend for the Todo application built
 
 - Node.js 18.x or higher
 - npm 9.x or higher
-- Backend API running on `http://localhost:8000` (or configured URL)
+- Backend API running on `http://localhost:8001` (or configured URL)
 
 ## Getting Started
 
@@ -53,7 +53,7 @@ cp .env.example .env.local
 Edit `.env.local` with your configuration:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
+NEXT_PUBLIC_API_URL=http://localhost:8001/api
 BETTER_AUTH_SECRET=your-secret-key-here
 BETTER_AUTH_URL=http://localhost:3000
 ```
@@ -227,7 +227,7 @@ docker build -t todo-frontend .
 
 ```bash
 docker run -p 3000:3000 \
-  -e NEXT_PUBLIC_API_URL=http://localhost:8000/api \
+  -e NEXT_PUBLIC_API_URL=http://localhost:8001/api \
   -e BETTER_AUTH_SECRET=your-secret \
   todo-frontend
 ```

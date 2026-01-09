@@ -1,25 +1,14 @@
-/**
- * Authentication Hook
- *
- * Custom React hook for managing authentication state and operations.
- * Provides access to current user, sign in/out functions, and loading states.
- *
- * @module hooks/useAuth
- */
-
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import {
-  signIn as authSignIn,
-  signUp as authSignUp,
-  signOut as authSignOut,
-  getSession,
-} from '@/lib/auth';
+import React, { useState, useEffect, createContext, useContext } from 'react';
+import { useRouter } from 'next/navigation';
+import { signIn as loginApi, signUp as signupApi, signOut as logoutApi, getSession } from '@/lib/auth';
 
-// ============================================================================
-// Types
-// ============================================================================
+// Create a helper function to get current user
+const getCurrentUser = async () => {
+  const session = await getSession();
+  return session?.user || null;
+};
 
 interface User {
   id: string;
@@ -27,159 +16,101 @@ interface User {
   name?: string;
 }
 
-interface AuthState {
+interface AuthContextType {
   user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  error: Error | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, name?: string) => Promise<void>;
+  logout: () => void;
+  isAuthenticated: () => boolean;
 }
 
-interface UseAuthReturn extends AuthState {
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name?: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  refreshSession: () => Promise<void>;
-}
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ============================================================================
-// Hook
-// ============================================================================
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-/**
- * Hook for managing authentication state
- */
-export function useAuth(): UseAuthReturn {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    isLoading: true,
-    isAuthenticated: false,
-    error: null,
-  });
-
-  /**
-   * Load current session
-   */
-  const loadSession = useCallback(async () => {
-    try {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }));
-
-      const session = await getSession();
-
-      if (session?.user) {
-        setState({
-          user: {
-            id: session.user.id,
-            email: session.user.email,
-            name: session.user.name,
-          },
-          isLoading: false,
-          isAuthenticated: true,
-          error: null,
-        });
-      } else {
-        setState({
-          user: null,
-          isLoading: false,
-          isAuthenticated: false,
-          error: null,
-        });
-      }
-    } catch (error) {
-      setState({
-        user: null,
-        isLoading: false,
-        isAuthenticated: false,
-        error: error instanceof Error ? error : new Error('Failed to load session'),
-      });
-    }
-  }, []);
-
-  /**
-   * Sign in with email and password
-   */
-  const signIn = useCallback(
-    async (email: string, password: string) => {
-      try {
-        setState((prev) => ({ ...prev, isLoading: true, error: null }));
-
-        await authSignIn(email, password);
-        await loadSession();
-      } catch (error) {
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: error instanceof Error ? error : new Error('Sign in failed'),
-        }));
-        throw error;
-      }
-    },
-    [loadSession]
-  );
-
-  /**
-   * Sign up with email and password
-   */
-  const signUp = useCallback(
-    async (email: string, password: string, name?: string) => {
-      try {
-        setState((prev) => ({ ...prev, isLoading: true, error: null }));
-
-        await authSignUp(email, password, name);
-        await loadSession();
-      } catch (error) {
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: error instanceof Error ? error : new Error('Sign up failed'),
-        }));
-        throw error;
-      }
-    },
-    [loadSession]
-  );
-
-  /**
-   * Sign out current user
-   */
-  const signOut = useCallback(async () => {
-    try {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }));
-
-      await authSignOut();
-
-      setState({
-        user: null,
-        isLoading: false,
-        isAuthenticated: false,
-        error: null,
-      });
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error : new Error('Sign out failed'),
-      }));
-      throw error;
-    }
-  }, []);
-
-  /**
-   * Refresh session
-   */
-  const refreshSession = useCallback(async () => {
-    await loadSession();
-  }, [loadSession]);
-
-  // Load session on mount
   useEffect(() => {
-    loadSession();
-  }, [loadSession]);
+    checkAuthStatus();
+  }, []);
 
-  return {
-    ...state,
-    signIn,
-    signUp,
-    signOut,
-    refreshSession,
+  const checkAuthStatus = async () => {
+    try {
+      const userData = await getCurrentUser();
+      if (userData) {
+        setUser(userData);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const login = async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      const response = await loginApi(email, password);
+      const userData = response.user;
+      setUser(userData);
+      router.push('/');
+    } catch (error: any) {
+      throw new Error(error.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signup = async (email: string, password: string, name?: string) => {
+    setLoading(true);
+    try {
+      const response = await signupApi(email, password, name);
+      const userData = response.user;
+      setUser(userData);
+      router.push('/');
+    } catch (error: any) {
+      throw new Error(error.message || 'Signup failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await logoutApi();
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      setUser(null);
+      router.push('/login');
+    }
+  };
+
+  const isAuthenticated = () => {
+    return !!user;
+  };
+
+  const value = {
+    user,
+    loading,
+    login,
+    signup,
+    logout,
+    isAuthenticated
+  };
+
+  return React.createElement(AuthContext.Provider, { value }, children);
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }

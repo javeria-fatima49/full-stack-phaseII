@@ -1,25 +1,17 @@
 /**
  * Authentication Module
  *
- * Handles JWT authentication with the backend API.
- * Manages token storage, session persistence, and authentication state.
+ * Handles authentication with the backend API.
+ * Manages session persistence and authentication state.
  *
  * @module lib/auth
  */
 
 // ============================================================================
-// Configuration
-// ============================================================================
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-const TOKEN_KEY = 'auth_token';
-const USER_KEY = 'auth_user';
-
-// ============================================================================
 // Types
 // ============================================================================
 
-interface User {
+export interface User {
   id: string;
   email: string;
   name?: string;
@@ -27,65 +19,23 @@ interface User {
 
 interface Session {
   user: User;
-  token: string;
+  token?: string;
 }
 
 interface AuthResponse {
   user: User;
-  token: string;
+  token?: string;
 }
 
-// ============================================================================
-// Token Management
-// ============================================================================
-
-/**
- * Get authentication token from localStorage
- */
-export function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(TOKEN_KEY);
+interface LoginCredentials {
+  email: string;
+  password: string;
 }
 
-/**
- * Set authentication token in localStorage
- */
-function setAuthToken(token: string): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(TOKEN_KEY, token);
-}
-
-/**
- * Remove authentication token from localStorage
- */
-function removeAuthToken(): void {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(TOKEN_KEY);
-}
-
-/**
- * Get user data from localStorage
- */
-function getUserData(): User | null {
-  if (typeof window === 'undefined') return null;
-  const userData = localStorage.getItem(USER_KEY);
-  return userData ? JSON.parse(userData) : null;
-}
-
-/**
- * Set user data in localStorage
- */
-function setUserData(user: User): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
-}
-
-/**
- * Remove user data from localStorage
- */
-function removeUserData(): void {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(USER_KEY);
+interface SignupData {
+  email: string;
+  password: string;
+  name?: string;
 }
 
 // ============================================================================
@@ -96,81 +46,125 @@ function removeUserData(): void {
  * Sign in with email and password
  */
 export async function signIn(email: string, password: string): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/signin`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email, password }),
-  });
+  try {
+    const response = await fetch('/api/auth/signin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Include cookies for session management
+      body: JSON.stringify({ email, password }),
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Sign in failed' }));
-    throw new Error(error.detail || 'Sign in failed');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Login failed' }));
+      throw new Error(errorData.detail || 'Login failed');
+    }
+
+    const data = await response.json();
+
+    // Return user data in expected format
+    return {
+      user: {
+        id: data.user?.id || data.id || '',
+        email: data.user?.email || data.email || '',
+        name: data.user?.name || data.name || '',
+      }
+    };
+  } catch (error) {
+    console.error('Sign in error:', error);
+    throw new Error('Sign in failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
-
-  const data: AuthResponse = await response.json();
-
-  // Store token and user data
-  setAuthToken(data.token);
-  setUserData(data.user);
-
-  return data;
 }
 
 /**
  * Sign up with email and password
  */
 export async function signUp(email: string, password: string, name?: string): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/signup`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email, password, name }),
-  });
+  try {
+    const response = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Include cookies for session management
+      body: JSON.stringify({ email, password, name }),
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Sign up failed' }));
-    throw new Error(error.detail || 'Sign up failed');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Registration failed' }));
+      throw new Error(errorData.detail || 'Registration failed');
+    }
+
+    const data = await response.json();
+
+    // Return user data in expected format
+    return {
+      user: {
+        id: data.user?.id || data.id || '',
+        email: data.user?.email || data.email || '',
+        name: data.user?.name || data.name || '',
+      }
+    };
+  } catch (error) {
+    console.error('Sign up error:', error);
+    throw new Error('Sign up failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
-
-  const data: AuthResponse = await response.json();
-
-  // Store token and user data
-  setAuthToken(data.token);
-  setUserData(data.user);
-
-  return data;
 }
 
 /**
  * Sign out current user
  */
 export async function signOut(): Promise<void> {
-  removeAuthToken();
-  removeUserData();
+  try {
+    await fetch('/api/auth/signout', {
+      method: 'POST',
+      credentials: 'include', // Include cookies for session management
+    });
+  } catch (error) {
+    console.error('Sign out error:', error);
+    // Still clear local state even if backend request fails
+  }
 }
 
 /**
  * Get current user session
  */
 export async function getSession(): Promise<Session | null> {
-  const token = getAuthToken();
-  const user = getUserData();
+  try {
+    const response = await fetch('/api/auth/me', {
+      credentials: 'include', // Include cookies for session management
+    });
 
-  if (!token || !user) {
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (!data) {
+      return null;
+    }
+
+    return {
+      user: {
+        id: data.id,
+        email: data.email,
+        name: data.name,
+      }
+    };
+  } catch (error) {
+    console.error('Get session error:', error);
     return null;
   }
-
-  return { user, token };
 }
 
 /**
  * Check if user is authenticated
  */
-export function isAuthenticated(): boolean {
-  return getAuthToken() !== null;
+export async function isAuthenticated(): Promise<boolean> {
+  const session = await getSession();
+  return !!session?.user;
 }
 
 // ============================================================================
@@ -181,20 +175,12 @@ export function isAuthenticated(): boolean {
  * Get authorization headers for API requests
  */
 export function getAuthHeaders(): Record<string, string> {
-  const token = getAuthToken();
-
-  if (!token) {
-    return {};
-  }
-
-  return {
-    Authorization: `Bearer ${token}`,
-  };
+  // Authentication is handled via cookies, so no additional headers needed
+  return {};
 }
 
 // ============================================================================
 // Export
 // ============================================================================
 
-export { API_BASE_URL };
-export type { User, Session, AuthResponse };
+export type { Session, AuthResponse };

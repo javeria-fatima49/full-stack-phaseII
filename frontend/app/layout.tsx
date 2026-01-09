@@ -2,9 +2,10 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AuthProvider } from '@/hooks/useAuth';
+import Navbar from '@/components/Navbar';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -78,16 +79,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ErrorBoundary>
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
-          <Toaster />
-        </ErrorBoundary>
+        <AuthProvider>
+          <ErrorBoundary>
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1 pt-16">
+                {children}
+              </main>
+              <Footer />
+            </div>
+            <Toaster />
+          </ErrorBoundary>
+        </AuthProvider>
       </body>
     </html>
   );
