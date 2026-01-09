@@ -27,16 +27,7 @@ interface AuthResponse {
   token?: string;
 }
 
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
 
-interface SignupData {
-  email: string;
-  password: string;
-  name?: string;
-}
 
 // ============================================================================
 // Authentication API

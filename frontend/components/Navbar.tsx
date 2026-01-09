@@ -3,12 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Menu, X, Plus, LayoutDashboard, CheckSquare, LogIn, UserPlus, LogOut } from 'lucide-react';
 
 export default function Navbar() {
   const { user, loading, logout, isAuthenticated } = useAuth();
-  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
