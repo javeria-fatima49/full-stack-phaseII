@@ -6,12 +6,18 @@ const nextConfig = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
   async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
-      },
-    ];
+    // Only add the rewrite if NEXT_PUBLIC_API_URL is defined
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (apiUrl && apiUrl !== 'undefined') {
+      return [
+        {
+          source: '/api/:path*',
+          destination: apiUrl + '/:path*',
+        },
+      ];
+    }
+    // Return empty array if no API URL is defined or is 'undefined'
+    return [];
   },
 };
 
