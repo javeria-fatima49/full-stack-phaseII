@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Calendar, Clock, CheckCircle2, Circle } from 'lucide-react';
@@ -20,7 +20,7 @@ import { taskApi } from '@/lib/api';
 import { NotFoundError } from '@/types/api';
 import { TaskActions } from '@/components/TaskActions';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
-import { Button } from '@/components/ui/button';
+import { AnimatedButton } from '@/components/AnimatedButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorMessage } from '@/components/ErrorMessage';
@@ -28,15 +28,16 @@ import { useToast } from '@/hooks/use-toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface TaskDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
  * TaskDetailPage displays full task details with management actions
  */
 export default function TaskDetailPage({ params }: TaskDetailPageProps) {
+  const resolvedParams = use(params);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -55,7 +56,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await taskApi.get(params.id);
+        const data = await taskApi.get(resolvedParams.id);
         setTask(data);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to load task'));
@@ -65,11 +66,11 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     }
 
     fetchTask();
-  }, [params.id]);
+  }, [resolvedParams.id]);
 
   // Handler: Navigate to edit page
   const handleEdit = () => {
-    router.push(`/tasks/${params.id}/edit`);
+    router.push(`/tasks/${resolvedParams.id}/edit`);
   };
 
   // Handler: Show delete confirmation dialog
@@ -88,7 +89,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
 
     try {
       setIsDeleting(true);
-      await taskApi.delete(params.id);
+      await taskApi.delete(resolvedParams.id);
 
       // Show success toast
       toast({
@@ -119,7 +120,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
       setIsTogglingComplete(true);
 
       // Call API to toggle completion
-      const updatedTask = await taskApi.toggleComplete(params.id);
+      const updatedTask = await taskApi.toggleComplete(resolvedParams.id);
 
       // Update local state
       setTask(updatedTask);
@@ -152,7 +153,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     setIsLoading(true);
     setError(null);
     taskApi
-      .get(params.id)
+      .get(resolvedParams.id)
       .then((data) => {
         setTask(data);
         setIsLoading(false);
@@ -178,9 +179,11 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   // Loading state
   if (isLoading) {
     return (
-      <div className="container mx-auto max-w-4xl px-4 py-8">
-        <LoadingSpinner size="lg" message="Loading task details..." centered />
-      </div>
+      <ProtectedRoute>
+        <div className="container mx-auto max-w-4xl px-4 py-8">
+          <LoadingSpinner size="lg" message="Loading task details..." centered />
+        </div>
+      </ProtectedRoute>
     );
   }
 
@@ -189,31 +192,33 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     const is404 = error instanceof NotFoundError;
 
     return (
-      <div className="container mx-auto max-w-4xl px-4 py-8">
-        <div className="mb-6">
-          <Link
-            href="/tasks"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Tasks
-          </Link>
-        </div>
-        <ErrorMessage
-          message={is404 ? 'Task Not Found' : 'Error Loading Task'}
-          error={is404 ? { message: 'The task you are looking for does not exist or has been deleted.' } : error}
-          onRetry={is404 ? undefined : handleRetry}
-          size="lg"
-          centered
-        />
-        {is404 && (
-          <div className="flex justify-center mt-6">
-            <Button onClick={() => router.push('/tasks')} variant="default">
-              Go to Task List
-            </Button>
+      <ProtectedRoute>
+        <div className="container mx-auto max-w-4xl px-4 py-8">
+          <div className="mb-6">
+            <Link
+              href="/tasks"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Tasks
+            </Link>
           </div>
-        )}
-      </div>
+          <ErrorMessage
+            message={is404 ? 'Task Not Found' : 'Error Loading Task'}
+            error={is404 ? { message: 'The task you are looking for does not exist or has been deleted.' } : error}
+            onRetry={is404 ? undefined : handleRetry}
+            size="lg"
+            centered
+          />
+          {is404 && (
+            <div className="flex justify-center mt-6">
+              <AnimatedButton onClick={() => router.push('/tasks')} variant="default">
+                Go to Task List
+              </AnimatedButton>
+            </div>
+          )}
+        </div>
+      </ProtectedRoute>
     );
   }
 

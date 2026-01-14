@@ -15,7 +15,7 @@ import { useTasks } from '@/hooks/useTasks';
 import { TaskCard } from '@/components/TaskCard';
 import { FilterControls } from '@/components/FilterControls';
 import { SortControls } from '@/components/SortControls';
-import { Button } from '@/components/ui/button';
+import { AnimatedButton } from '@/components/AnimatedButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { StaggerContainer, StaggerItem } from '@/components/PageTransition';
@@ -66,8 +66,6 @@ function TasksPageSkeleton() {
 function TasksPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { tasks, isLoading, error, mutate } = useTasks();
-
   // ============================================================================
   // URL Search Params State
   // ============================================================================
@@ -75,6 +73,9 @@ function TasksPageContent() {
   const filterStatus = (searchParams.get('status') as TaskFilterStatus) || DEFAULT_TASK_FILTERS.status;
   const sortField = (searchParams.get('sortField') as TaskSortField) || DEFAULT_TASK_FILTERS.sortField;
   const sortOrder = (searchParams.get('sortOrder') as TaskSortOrder) || DEFAULT_TASK_FILTERS.sortOrder;
+
+  // Fetch tasks with backend filtering and sorting
+  const { tasks, isLoading, error, mutate } = useTasks({ status: filterStatus, sortField, sortOrder });
 
   // ============================================================================
   // Update URL Search Params
@@ -208,10 +209,10 @@ function TasksPageContent() {
           <p className="text-muted-foreground text-center max-w-md">
             Get started by creating your first task. Stay organized and track your progress!
           </p>
-          <Button onClick={handleCreateTask} size="lg">
+          <AnimatedButton onClick={handleCreateTask} size="lg">
             <Plus className="h-5 w-5 mr-2" />
             Create Your First Task
-          </Button>
+          </AnimatedButton>
         </div>
       </div>
     );
@@ -228,10 +229,10 @@ function TasksPageContent() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h1 className="text-3xl font-bold">My Tasks</h1>
-            <Button onClick={handleCreateTask}>
+            <AnimatedButton onClick={handleCreateTask}>
               <Plus className="h-5 w-5 mr-2" />
               Add Task
-            </Button>
+            </AnimatedButton>
           </div>
 
           {/* Controls */}
@@ -255,9 +256,9 @@ function TasksPageContent() {
               No tasks match your current filters. Try adjusting your filters or create a new task.
             </p>
             {hasActiveFilters && (
-              <Button onClick={handleClearFilters} variant="outline">
+              <AnimatedButton onClick={handleClearFilters} variant="outline">
                 Clear Filters
-              </Button>
+              </AnimatedButton>
             )}
           </div>
         </div>
@@ -280,10 +281,10 @@ function TasksPageContent() {
               Showing {filteredAndSortedTasks.length} of {tasks.length} tasks
             </p>
           </div>
-          <Button onClick={handleCreateTask}>
+          <AnimatedButton onClick={handleCreateTask}>
             <Plus className="h-5 w-5 mr-2" />
             Add Task
-          </Button>
+          </AnimatedButton>
         </div>
 
         {/* Controls */}
@@ -305,6 +306,7 @@ function TasksPageContent() {
                 <TaskCard
                   task={task}
                   onClick={() => handleTaskClick(task.id)}
+                  onEdit={(taskId) => router.push(`/tasks/${taskId}/edit`)}
                 />
               </StaggerItem>
             ))}

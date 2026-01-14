@@ -18,7 +18,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { AnimatedButton } from '@/components/AnimatedButton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -174,7 +174,7 @@ export function TaskForm({
           aria-required="true"
           aria-invalid={!!titleError}
           aria-describedby={titleError ? 'title-error' : undefined}
-          className={titleError ? 'border-destructive' : ''}
+          className={titleError ? 'border-destructive hover-input' : 'hover-input'}
           maxLength={200}
         />
         {titleError && (
@@ -205,7 +205,7 @@ export function TaskForm({
           disabled={isSubmitting}
           aria-invalid={!!descriptionError}
           aria-describedby={descriptionError ? 'description-error' : undefined}
-          className={descriptionError ? 'border-destructive' : ''}
+          className={descriptionError ? 'border-destructive hover-input' : 'hover-input'}
           rows={5}
           maxLength={1000}
         />
@@ -235,7 +235,7 @@ export function TaskForm({
 
       {/* Form Actions */}
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <Button
+        <AnimatedButton
           type="button"
           variant="outline"
           onClick={handleCancel}
@@ -243,8 +243,8 @@ export function TaskForm({
           className="w-full sm:w-auto"
         >
           Cancel
-        </Button>
-        <Button
+        </AnimatedButton>
+        <AnimatedButton
           type="submit"
           disabled={isSubmitting}
           className="w-full sm:w-auto"
@@ -257,7 +257,7 @@ export function TaskForm({
           ) : (
             submitLabel
           )}
-        </Button>
+        </AnimatedButton>
       </div>
     </form>
   );

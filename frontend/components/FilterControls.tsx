@@ -51,7 +51,7 @@ export function FilterControls({ value, onChange }: FilterControlsProps) {
       <Filter className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger
-          className="w-[180px]"
+          className="w-[180px] hover-input"
           aria-label="Filter tasks by status"
         >
           <SelectValue placeholder="Filter by status" />

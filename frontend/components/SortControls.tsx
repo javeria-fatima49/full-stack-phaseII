@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { TaskSortField, TaskSortOrder } from '@/types/task';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AnimatedButton } from '@/components/AnimatedButton';
 
 // ============================================================================
 // Types
@@ -67,7 +67,7 @@ export function SortControls({
         aria-hidden="true"
       />
       <Select value={sortField} onValueChange={onSortFieldChange}>
-        <SelectTrigger className="w-[180px]" aria-label="Sort tasks by field">
+        <SelectTrigger className="w-[180px] hover-input" aria-label="Sort tasks by field">
           <SelectValue placeholder="Sort by" />
         </SelectTrigger>
         <SelectContent>
@@ -78,15 +78,16 @@ export function SortControls({
           ))}
         </SelectContent>
       </Select>
-      <Button
+      <AnimatedButton
         variant="outline"
         size="icon"
         onClick={toggleSortOrder}
         aria-label={`Sort ${sortOrder === 'asc' ? 'ascending' : 'descending'}`}
         title={`Sort ${sortOrder === 'asc' ? 'ascending' : 'descending'}`}
+        className="hover-button"
       >
         <SortIcon className="h-4 w-4" />
-      </Button>
+      </AnimatedButton>
     </div>
   );
 }

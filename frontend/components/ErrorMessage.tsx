@@ -11,7 +11,7 @@
 
 import { motion } from 'framer-motion';
 import { AlertCircle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AnimatedButton } from '@/components/AnimatedButton';
 import { cn } from '@/lib/utils';
 
 // ============================================================================
@@ -95,7 +95,7 @@ export function ErrorMessage({
       </div>
 
       {onRetry && (
-        <Button
+        <AnimatedButton
           onClick={onRetry}
           variant="outline"
           size={buttonSizeVariants[size]}
@@ -103,7 +103,7 @@ export function ErrorMessage({
         >
           <RefreshCw className="h-4 w-4" />
           Try Again
-        </Button>
+        </AnimatedButton>
       )}
     </motion.div>
   );

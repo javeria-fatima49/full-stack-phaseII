@@ -21,14 +21,18 @@ import { forwardRef } from 'react';
  * Button with tap animation
  */
 export const AnimatedButton = forwardRef<HTMLButtonElement, ButtonProps>(
-  (props, ref) => {
+  ({ className, ...props }, ref) => {
     return (
       <motion.div
         whileTap={{ scale: 0.95 }}
-        transition={{ duration: 0.1, ease: 'easeInOut' }}
-        style={{ display: 'inline-block' }}
+        transition={{ duration: 0.1, ease: 'easeOut' }}
+        className="inline-block"
       >
-        <Button ref={ref} {...props} />
+        <Button
+          ref={ref}
+          className={`hover-button ${className || ''}`}
+          {...props}
+        />
       </motion.div>
     );
   }

@@ -71,13 +71,13 @@ export function LoadingSpinner({
     >
       <Loader2
         className={cn(
-          'animate-spin text-primary',
+          'animate-spin text-cyan-400',
           sizeClasses[size]
         )}
         aria-hidden="true"
       />
       {message && (
-        <p className={cn('text-muted-foreground', textSizeClasses[size])}>
+        <p className={cn('text-gray-400', textSizeClasses[size])}>
           {message}
         </p>
       )}
@@ -91,7 +91,7 @@ export function LoadingSpinner({
  */
 export function LoadingPage({ message }: { message?: string }) {
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+    <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-slate-900">
       <LoadingSpinner size="lg" message={message} />
     </div>
   );
@@ -103,7 +103,7 @@ export function LoadingPage({ message }: { message?: string }) {
 export function LoadingInline({ className }: { className?: string }) {
   return (
     <Loader2
-      className={cn('animate-spin h-4 w-4', className)}
+      className={cn('animate-spin h-4 w-4 text-cyan-400', className)}
       aria-hidden="true"
     />
   );

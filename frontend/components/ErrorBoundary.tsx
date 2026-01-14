@@ -18,7 +18,7 @@
 
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AnimatedButton } from '@/components/AnimatedButton';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 // ============================================================================
@@ -208,21 +208,21 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </CardContent>
 
             <CardFooter className="flex flex-col gap-2 sm:flex-row">
-              <Button
+              <AnimatedButton
                 onClick={this.handleReset}
                 variant="default"
                 className="w-full sm:w-auto"
               >
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Try Again
-              </Button>
-              <Button
+              </AnimatedButton>
+              <AnimatedButton
                 onClick={this.handleReload}
                 variant="outline"
                 className="w-full sm:w-auto"
               >
                 Reload Page
-              </Button>
+              </AnimatedButton>
             </CardFooter>
           </Card>
         </div>

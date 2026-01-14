@@ -27,14 +27,14 @@ export function Footer() {
 
   return (
     <footer
-      className="w-full border-t bg-background"
+      className="w-full border-t border-slate-800 bg-slate-900"
       role="contentinfo"
     >
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           {/* Brand and Copyright */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <CheckSquare className="h-4 w-4 text-primary" aria-hidden="true" />
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <CheckSquare className="h-4 w-4 text-cyan-400" aria-hidden="true" />
             <span>
               © {currentYear} Todo App. All rights reserved.
             </span>
@@ -48,14 +48,14 @@ export function Footer() {
           >
             <Link
               href="/"
-              className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md px-2 py-1"
+              className="text-gray-400 hover:text-cyan-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded-md px-2 py-1"
               aria-label="Go to home page"
             >
               Home
             </Link>
             <Link
               href="/tasks"
-              className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md px-2 py-1"
+              className="text-gray-400 hover:text-cyan-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded-md px-2 py-1"
               aria-label="View all tasks"
             >
               Tasks
@@ -64,7 +64,7 @@ export function Footer() {
         </div>
 
         {/* Additional Info */}
-        <div className="mt-4 text-center text-xs text-muted-foreground">
+        <div className="mt-4 text-center text-xs text-gray-500">
           <p>
             Built with Next.js, React, and TypeScript. Powered by shadcn/ui.
           </p>

@@ -16,7 +16,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { TaskForm } from '@/components/TaskForm';
 import { taskApi } from '@/lib/api';
@@ -25,9 +25,15 @@ import type { CreateTaskFormData } from '@/lib/validation';
 import type { Task } from '@/types/task';
 import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { AnimatedButton } from '@/components/AnimatedButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import ProtectedRoute from '@/components/ProtectedRoute';
+
+interface EditTaskPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
 
 // ============================================================================
 // Component
@@ -39,12 +45,12 @@ import ProtectedRoute from '@/components/ProtectedRoute';
  * Renders a form for editing an existing task with proper loading,
  * error handling, and success feedback.
  */
-export default function EditTaskPage() {
+export default function EditTaskPage({ params }: EditTaskPageProps) {
+  const resolvedParams = use(params);
   const router = useRouter();
-  const params = useParams();
   const { toast } = useToast();
 
-  const taskId = params.id as string;
+  const taskId = resolvedParams.id;
 
   // State
   const [task, setTask] = useState<Task | null>(null);
@@ -203,13 +209,13 @@ export default function EditTaskPage() {
                   {error || 'Task not found'}
                 </p>
                 <div className="mt-6 flex justify-center gap-3">
-                  <Button variant="outline" onClick={() => router.push('/tasks')}>
+                  <AnimatedButton variant="outline" onClick={() => router.push('/tasks')}>
                     Back to Tasks
-                  </Button>
-                  <Button onClick={handleRetry}>
+                  </AnimatedButton>
+                  <AnimatedButton onClick={handleRetry}>
                     <Loader2 className="mr-2 h-4 w-4" />
                     Retry
-                  </Button>
+                  </AnimatedButton>
                 </div>
               </div>
             </div>

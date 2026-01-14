@@ -10,11 +10,16 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Task } from '@/types/task';
 import { formatDate } from '@/lib/utils';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TaskActions } from './TaskActions';
+import { useTasks } from '@/hooks/useTasks';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 // ============================================================================
 // Types
@@ -23,6 +28,7 @@ import { cn } from '@/lib/utils';
 interface TaskCardProps {
   task: Task;
   onClick?: () => void;
+  onEdit?: (id: string) => void;
 }
 
 // ============================================================================
@@ -32,13 +38,64 @@ interface TaskCardProps {
 /**
  * Task card display with framer-motion animations
  */
-export function TaskCard({ task, onClick }: TaskCardProps) {
+export function TaskCard({ task, onClick, onEdit }: TaskCardProps) {
+  const router = useRouter();
+  const { toggleComplete, deleteTask } = useTasks();
+  const { toast } = useToast();
+  const [isActionLoading, setIsActionLoading] = useState(false);
+
   const StatusIcon = task.completed ? CheckCircle2 : Circle;
   const statusColor = task.completed ? 'text-green-600' : 'text-orange-600';
   const statusBgColor = task.completed ? 'bg-green-50' : 'bg-orange-50';
 
   // Wrap Card in motion.div for animations
   const CardWrapper = onClick ? motion.div : 'div';
+
+  const handleToggleComplete = async () => {
+    setIsActionLoading(true);
+    try {
+      await toggleComplete(task.id);
+      toast({
+        title: task.completed ? 'Task marked as pending' : 'Task completed',
+        description: `"${task.title}" has been updated.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Failed to update task',
+        description: error instanceof Error ? error.message : 'An error occurred',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsActionLoading(true);
+    try {
+      await deleteTask(task.id);
+      toast({
+        title: 'Task deleted successfully',
+        description: `"${task.title}" has been removed.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Failed to delete task',
+        description: error instanceof Error ? error.message : 'An error occurred',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(task.id);
+    } else {
+      router.push(`/tasks/${task.id}/edit`);
+    }
+  };
 
   return (
     <CardWrapper
@@ -50,7 +107,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
     >
       <Card
         className={cn(
-          'h-full transition-shadow duration-200',
+          'h-full transition-shadow duration-200 hover-card',
           onClick && 'cursor-pointer hover:shadow-lg'
         )}
         onClick={onClick}
@@ -94,6 +151,17 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
               </span>
             </span>
             <span>Created {formatDate(task.created_at)}</span>
+          </div>
+
+          {/* Task Actions */}
+          <div className="pt-3 border-t mt-3">
+            <TaskActions
+              isCompleted={task.completed}
+              isLoading={isActionLoading}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onToggleComplete={handleToggleComplete}
+            />
           </div>
         </CardContent>
       </Card>

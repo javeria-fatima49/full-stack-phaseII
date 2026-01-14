@@ -10,7 +10,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
+import { AnimatedButton } from '@/components/AnimatedButton';
 import { Pencil, Trash2, Check, X } from 'lucide-react';
 
 interface TaskActionsProps {
@@ -44,11 +44,11 @@ export function TaskActions({
         transition={{ duration: 0.1 }}
         className="flex-1 sm:flex-none"
       >
-        <Button
+        <AnimatedButton
           onClick={onToggleComplete}
           disabled={isLoading}
           variant={isCompleted ? 'outline' : 'default'}
-          className="w-full"
+          className="w-full hover-button"
           aria-label={isCompleted ? 'Mark as pending' : 'Mark as complete'}
         >
           {isCompleted ? (
@@ -62,7 +62,7 @@ export function TaskActions({
               Mark Complete
             </>
           )}
-        </Button>
+        </AnimatedButton>
       </motion.div>
 
       {/* Edit Button with Tap Animation */}
@@ -71,16 +71,16 @@ export function TaskActions({
         transition={{ duration: 0.1 }}
         className="flex-1 sm:flex-none"
       >
-        <Button
+        <AnimatedButton
           onClick={onEdit}
           disabled={isLoading}
           variant="outline"
-          className="w-full"
+          className="w-full hover-button"
           aria-label="Edit task"
         >
           <Pencil className="mr-2 h-4 w-4" />
           Edit
-        </Button>
+        </AnimatedButton>
       </motion.div>
 
       {/* Delete Button with Tap Animation */}
@@ -89,16 +89,16 @@ export function TaskActions({
         transition={{ duration: 0.1 }}
         className="flex-1 sm:flex-none"
       >
-        <Button
+        <AnimatedButton
           onClick={onDelete}
           disabled={isLoading}
           variant="destructive"
-          className="w-full"
+          className="w-full hover-button"
           aria-label="Delete task"
         >
           <Trash2 className="mr-2 h-4 w-4" />
           Delete
-        </Button>
+        </AnimatedButton>
       </motion.div>
     </div>
   );

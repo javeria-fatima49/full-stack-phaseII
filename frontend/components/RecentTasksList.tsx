@@ -61,6 +61,7 @@ export function RecentTasksList({ tasks }: RecentTasksListProps) {
             key={task.id}
             task={task}
             onClick={() => router.push(`/tasks/${task.id}`)}
+            onEdit={(taskId) => router.push(`/tasks/${taskId}/edit`)}
           />
         ))}
       </div>

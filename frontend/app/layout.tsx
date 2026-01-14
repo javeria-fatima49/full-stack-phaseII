@@ -66,8 +66,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#0a0a15" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a15" },
   ],
 };
 
@@ -77,8 +77,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className="dark">
+      <body className={`${inter.className} bg-slate-900 text-gray-100`}>
         <AuthProvider>
           <ErrorBoundary>
             <div className="flex min-h-screen flex-col">

@@ -17,8 +17,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle } from 'lucide-react';
+import { AnimatedButton } from '@/components/AnimatedButton';
+import { AlertTriangle, Trash2, Loader2 } from 'lucide-react';
 
 interface DeleteConfirmDialogProps {
   /** Whether the dialog is open */
@@ -60,22 +60,32 @@ export function DeleteConfirmDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button
+          <AnimatedButton
             type="button"
             variant="outline"
             onClick={onClose}
             disabled={isDeleting}
           >
             Cancel
-          </Button>
-          <Button
+          </AnimatedButton>
+          <AnimatedButton
             type="button"
             variant="destructive"
             onClick={onConfirm}
             disabled={isDeleting}
           >
-            {isDeleting ? 'Deleting...' : 'Delete Task'}
-          </Button>
+            {isDeleting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Task
+              </>
+            )}
+          </AnimatedButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>
