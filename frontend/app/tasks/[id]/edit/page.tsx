@@ -17,7 +17,7 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { TaskForm } from '@/components/TaskForm';
 import { taskApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
