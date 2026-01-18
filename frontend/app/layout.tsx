@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
+import { ChatWidget } from '@/components/chat';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -89,6 +90,7 @@ export default function RootLayout({
               <Footer />
             </div>
             <Toaster />
+            <ChatWidget />
           </ErrorBoundary>
         </AuthProvider>
       </body>

@@ -8,6 +8,7 @@ from app.schemas.auth import (
     AuthResponse,
     MessageResponse
 )
+from app.schemas.chat import ChatRequest, ChatResponse, ToolCall, ConversationHistoryResponse
 
 __all__ = [
     "TaskCreate",
@@ -17,5 +18,9 @@ __all__ = [
     "UserSignin",
     "UserResponse",
     "AuthResponse",
-    "MessageResponse"
+    "MessageResponse",
+    "ChatRequest",
+    "ChatResponse",
+    "ToolCall",
+    "ConversationHistoryResponse"
 ]

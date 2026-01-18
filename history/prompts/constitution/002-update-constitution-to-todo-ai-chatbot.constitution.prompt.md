@@ -1,58 +1,34 @@
-<!--
-Sync Impact Report
-==================
-Version Change: 1.0.0 → 2.0.0
-Rationale: MAJOR version bump - Complete project redefinition from Hackathon Todo App to Todo AI Chatbot with fundamentally different architecture, technology stack, and principles
+---
+id: 002
+title: Update constitution to Todo AI Chatbot
+stage: constitution
+date: 2026-01-16
+surface: agent
+model: claude-sonnet-4-5-20250929
+feature: none
+branch: main
+user: dell
+command: /sp.constitution
+labels: ["constitution", "architecture", "ai-chatbot", "major-version", "agents", "mcp-tools"]
+links:
+  spec: null
+  ticket: null
+  adr: null
+  pr: null
+files:
+  - .specify/memory/constitution.md
+tests:
+  - none
+---
 
-Modified Principles:
-- Project Overview: Hackathon Todo App → Todo AI Chatbot (AI-powered conversational interface)
-- Technology Stack: Removed Better Auth frontend, added OpenAI ChatKit, Cohere API, OpenAI Agents SDK, MCP SDK
-- Architecture: Traditional web app → Stateless AI agent-based system with MCP tools
-- Backend: Added ConversationAgent and TaskManagerAgent with OpenAI Agents SDK + Cohere API
-- Database: Added Conversation and Message models for chat persistence
-- API: Changed from RESTful CRUD to conversational endpoint /api/{user_id}/chat
-- Frontend: Changed from Next.js full app to OpenAI ChatKit interface (no AI logic)
-- Authentication: Moved from Better Auth to Better Auth (retained but different integration)
+## Prompt
 
-Added Sections:
-- Section 2: Chatbot Overview (conversational interface behavior)
-- Section 3: Agents (TaskManagerAgent and ConversationAgent specifications)
-- Section 4: MCP Tools Specification (stateless tool operations)
-- Section 5: Database Models (added Conversation and Message models)
-- Section 6: API Endpoint (conversational chat endpoint)
-- Section 7: Conversation Flow (stateless request handling)
-- Section 8: Frontend (ChatKit-specific requirements)
-- Section 9: Key Principles (stateless, scalable, AI-driven)
-- Section 13: Out of Scope (explicit exclusions)
-- Section 14: Future Enhancements (roadmap items)
-- Section 15: References (technology documentation links)
-
-Removed Sections:
-- Monorepo Structure (simplified for AI chatbot)
-- Spec-Driven Development Rules (retained in CLAUDE.md but not constitution focus)
-- Agentic Development Workflow (retained in CLAUDE.md)
-- Dockerized Local Development Environment (deployment model changed)
-- AI Sub-Agents and Skills Integration (replaced with specific agent definitions)
-- Quality & Judging Criteria (hackathon-specific)
-- Final Rule (spec-first approach retained in CLAUDE.md)
-
-Templates Status:
-- ✅ .specify/templates/spec-template.md - Compatible (user stories with priorities still apply)
-- ✅ .specify/templates/plan-template.md - Compatible (constitution check section still applies)
-- ✅ .specify/templates/tasks-template.md - Compatible (user story organization still applies)
-- ⚠️ README.md - Update recommended to reflect AI chatbot architecture
-- ⚠️ CLAUDE.md - Already contains SDD rules, verify alignment with new architecture
-
-Follow-up TODOs:
-- Update README.md to describe Todo AI Chatbot instead of Hackathon Todo App
-- Verify CLAUDE.md SDD rules align with stateless AI agent architecture
-- Consider documenting agent implementation details in separate agent specification files
--->
+```text
+# CONSTITUTION.md
 
 # Todo AI Chatbot - Project Constitution
 
 ## 1. Project Overview
-
 The Todo AI Chatbot is an AI-powered assistant that allows users to **manage their tasks** (todos) through natural language commands. The system uses:
 
 - **Frontend:** OpenAI ChatKit for conversational interface
@@ -67,7 +43,6 @@ The backend is **stateless**, persisting all conversation and task data to the d
 ---
 
 ## 2. Chatbot Overview
-
 The chatbot is the **user-facing interface** built with ChatKit:
 
 - Receives user messages through a text input
@@ -83,7 +58,6 @@ The chatbot is the **user-facing interface** built with ChatKit:
 ---
 
 ## 3. Agents
-
 The project uses AI agents for backend task handling and conversation management.
 
 **Agents (High-Level Reference):**
@@ -143,19 +117,15 @@ The project uses AI agents for backend task handling and conversation management
 }
 ```
 
----
-
 ## 7. Conversation Flow (Stateless)
 
-1. User sends message → `/api/{user_id}/chat` via ChatKit
+1. User sends message → /api/{user_id}/chat via ChatKit
 2. ConversationAgent fetches conversation history from Neon DB
 3. User message saved in DB
 4. TaskManagerAgent interprets message using OpenAI Agents SDK + Cohere API → invokes MCP tools
 5. MCP tools perform operations on DB
 6. TaskManagerAgent generates friendly response
 7. Response and tool_calls stored in DB and returned to frontend
-
----
 
 ## 8. Frontend
 
@@ -165,26 +135,20 @@ The project uses AI agents for backend task handling and conversation management
 - Frontend contains no AI logic; backend agents handle all intelligence
 - Domain allowlist required for production deployment
 
----
-
 ## 9. Key Principles
 
-- **Stateless server**: Any backend instance can handle requests
-- **Scalable & resilient**: Conversation and task data persists in Neon
-- **Assistant**: Cohere API via OpenAI Agents SDK
-- **MCP tools**: Stateless, database-backed operations
-- **Conversation history**: Stored in DB, fetched per request
-
----
+- Stateless server: Any backend instance can handle requests
+- Scalable & resilient: Conversation and task data persists in Neon
+- Assistant: Cohere API via OpenAI Agents SDK
+- MCP tools: Stateless, database-backed operations
+- Conversation history: Stored in DB, fetched per request
 
 ## 10. Deployment
 
-- **Backend**: Deployed on Vercel
-- **Frontend**: Deployed on Vercel
-- **Database**: Neon Serverless PostgreSQL
-- **Authentication**: Better Auth
-
----
+- Backend: Deployed on Vercel
+- Frontend: Deployed on Vercel
+- Database: Neon Serverless PostgreSQL
+- Authentication: Better Auth
 
 ## 11. Constraints
 
@@ -194,8 +158,6 @@ The project uses AI agents for backend task handling and conversation management
 - Agents use OpenAI Agents SDK + Cohere API
 - Frontend uses OpenAI ChatKit
 
----
-
 ## 12. Success Criteria
 
 - User can manage tasks via natural language
@@ -204,16 +166,12 @@ The project uses AI agents for backend task handling and conversation management
 - MCP tools correctly map to database operations
 - Frontend displays AI responses correctly
 
----
-
 ## 13. Out of Scope
 
 - Multi-user collaboration
 - Task sharing
 - Reminders/notifications
 - Advanced task filtering (tags, priorities)
-
----
 
 ## 14. Future Enhancements
 
@@ -223,8 +181,6 @@ The project uses AI agents for backend task handling and conversation management
 - Reminders
 - Multi-user collaboration
 
----
-
 ## 15. References
 
 - OpenAI Agents SDK
@@ -233,40 +189,44 @@ The project uses AI agents for backend task handling and conversation management
 - Neon PostgreSQL
 - Better Auth
 - OpenAI ChatKit
+```
 
----
+## Response snapshot
 
-## Governance
+Updated project constitution from version 1.0.0 to 2.0.0 with complete architectural redefinition:
 
-This constitution supersedes all other development practices and guidelines.
+**Major Changes:**
+- Project redefined from "Hackathon Todo App" to "Todo AI Chatbot"
+- Architecture changed from traditional web app to AI agent-based conversational system
+- Added agent specifications: TaskManagerAgent (NLU + MCP tool mapping) and ConversationAgent (context + persistence)
+- Added MCP tools specification for stateless task operations (add_task, list_tasks, complete_task, delete_task, update_task)
+- Technology stack updated: Added OpenAI ChatKit, Cohere API, OpenAI Agents SDK, MCP SDK
+- API paradigm shifted from RESTful CRUD to conversational endpoint `/api/{user_id}/chat`
+- Database models expanded: Added Conversation and Message entities for chat persistence
+- Frontend changed from full Next.js app to ChatKit interface with no AI logic
+- Defined stateless backend principles with database-backed conversation history
 
-### Amendment Procedure
+**Sync Impact Report Generated:**
+- Templates verified for compatibility (spec, plan, tasks templates remain compatible)
+- Follow-up items identified: README.md and CLAUDE.md should be reviewed for alignment
 
-1. Proposed amendments MUST be documented with rationale
-2. Version number MUST be incremented according to semantic versioning:
-   - **MAJOR**: Backward incompatible governance/principle removals or redefinitions
-   - **MINOR**: New principle/section added or materially expanded guidance
-   - **PATCH**: Clarifications, wording, typo fixes, non-semantic refinements
-3. All dependent templates and documentation MUST be updated for consistency
-4. A Sync Impact Report MUST be generated and prepended to this file
+**Governance:**
+- Version: 2.0.0 (MAJOR bump due to backward-incompatible architectural changes)
+- Ratified: 2026-01-06
+- Last Amended: 2026-01-16
+- Revision history table updated with v2.0.0 entry
 
-### Compliance Review
+## Outcome
 
-- All specifications, plans, and implementations MUST verify compliance with this constitution
-- Constitution violations MUST be justified in the Complexity Tracking section of plan.md
-- Unjustified violations are not permitted
+- ✅ Impact: Constitution completely redefined to reflect AI chatbot architecture with agents, MCP tools, and conversational interface. MAJOR version bump (1.0.0 → 2.0.0) due to fundamental architectural changes.
+- 🧪 Tests: N/A (documentation update)
+- 📁 Files: Updated .specify/memory/constitution.md with new architecture, added Sync Impact Report, updated version metadata and revision history
+- 🔁 Next prompts: Consider updating README.md to reflect AI chatbot architecture; verify CLAUDE.md SDD rules align with stateless agent architecture; document agent implementation details if needed
+- 🧠 Reflection: Successfully captured complete architectural pivot from traditional web app to AI agent-based system. All key components documented: agents, MCP tools, conversation flow, database models, and stateless principles. Templates remain compatible due to user story organization approach.
 
-### Version History
+## Evaluation notes (flywheel)
 
-**Version**: 2.0.0
-**Ratified**: 2026-01-06
-**Last Amended**: 2026-01-16
-
----
-
-## 16. Revision History
-
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-01-06 | AI Assistant | Initial constitution (Hackathon Todo App) |
-| 2.0.0 | 2026-01-16 | AI Assistant | Complete redefinition to Todo AI Chatbot with AI agents, MCP tools, and conversational interface |
+- Failure modes observed: None. Constitution update completed successfully with proper version increment, Sync Impact Report, and governance metadata.
+- Graders run and results (PASS/FAIL): N/A (documentation task)
+- Prompt variant (if applicable): Standard /sp.constitution command with full constitution content provided
+- Next experiment (smallest change to try): Monitor whether README.md and CLAUDE.md updates are needed based on actual implementation work; consider creating separate agent specification documents if agent logic becomes complex

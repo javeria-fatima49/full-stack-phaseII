@@ -23,6 +23,11 @@ import {
   isTask,
   isTaskArray,
 } from '@/types/api';
+import {
+  ChatRequest,
+  ChatResponse,
+  ConversationHistoryResponse,
+} from '@/types/chat';
 
 // ============================================================================
 // Configuration
@@ -326,6 +331,34 @@ export const taskApi: TaskApiClient = {
     }
 
     return task;
+  },
+};
+
+// ============================================================================
+// Chat API Client
+// ============================================================================
+
+/**
+ * Chat API operations for AI chatbot
+ */
+export const chatApi = {
+  /**
+   * Send a message to the AI chatbot
+   */
+  async sendMessage(userId: string, data: ChatRequest): Promise<ChatResponse> {
+    return post<ChatResponse>(`/${userId}/chat`, data);
+  },
+
+  /**
+   * Get conversation history
+   */
+  async getConversationHistory(
+    userId: string,
+    conversationId: string
+  ): Promise<ConversationHistoryResponse> {
+    return get<ConversationHistoryResponse>(
+      `/${userId}/conversations/${conversationId}`
+    );
   },
 };
 

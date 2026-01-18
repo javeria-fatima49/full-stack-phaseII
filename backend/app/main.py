@@ -13,6 +13,7 @@ import sys
 from app.config import settings
 from app.database import create_db_and_tables, engine
 from app.api.routes import tasks, auth
+from app.api import chat
 
 
 # Create FastAPI application
@@ -128,6 +129,7 @@ async def database_health_check():
 # Include routers
 app.include_router(auth.router)
 app.include_router(tasks.router)
+app.include_router(chat.router)
 
 
 # Root endpoint

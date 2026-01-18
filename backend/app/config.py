@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # Required settings
     database_url: str
     better_auth_secret: str
+    cohere_api_key: str
 
     # Optional settings with defaults
     frontend_url: str = "http://localhost:3000"
