@@ -24,7 +24,7 @@ interface ChatInterfaceProps {
  * - Auto-scrolling to latest messages
  * - Loading states during API calls
  */
-export default function ChatInterface({ userId, conversationId: initialConversationId, onClose }: ChatInterfaceProps) {
+export default function ChatInterface({ userId, conversationId: initialConversationId, }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
