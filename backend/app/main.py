@@ -21,7 +21,8 @@ app = FastAPI(
     title="Todo App API",
     version="1.0.0",
     description="Phase II Todo App Backend - FastAPI with JWT Authentication",
-    debug=(settings.environment == "development")
+    debug=(settings.environment == "development"),
+    redirect_slashes=False  # Disable automatic redirects to prevent HTTP redirect issues
 )
 
 
