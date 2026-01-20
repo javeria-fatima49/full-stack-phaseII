@@ -2,7 +2,7 @@
  * Centralized API Client
  *
  * Provides a unified interface for making HTTP requests to the backend API.
- * Handles authentication via cookies (Better Auth), error handling, and request/response transformation.
+ * Handles authentication via JWT tokens, error handling, and request/response transformation.
  *
  * @module lib/api
  */
@@ -28,6 +28,7 @@ import {
   ChatResponse,
   ConversationHistoryResponse,
 } from '@/types/chat';
+import { getAuthHeaders } from './auth';
 
 // ============================================================================
 // Configuration
@@ -83,7 +84,7 @@ function isRetryableError(status: number): boolean {
 
 /**
  * Make an HTTP request with retry logic
- * Authentication is handled automatically via cookies set by Better Auth
+ * Authentication is handled automatically via JWT tokens
  */
 async function request<T>(
   path: string,
@@ -97,15 +98,17 @@ async function request<T>(
 
   while (retryCount <= MAX_RETRIES) {
     try {
+      // Get authentication headers
+      const authHeaders = getAuthHeaders();
+
       const response = await fetch(url, {
         ...fetchOptions,
         headers: {
           'Content-Type': 'application/json',
-          // Include credentials (cookies) for authentication
+          // Include JWT token in headers
+          ...authHeaders,
           ...fetchOptions.headers,
         },
-        // Include credentials to send cookies with requests
-        credentials: 'include',
       });
 
       // Handle successful responses

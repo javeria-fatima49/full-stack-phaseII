@@ -27,7 +27,39 @@ interface AuthResponse {
   token?: string;
 }
 
+// ============================================================================
+// Token Storage
+// ============================================================================
 
+const TOKEN_KEY = 'access_token';
+
+/**
+ * Store JWT token in localStorage
+ */
+export function storeToken(token: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+}
+
+/**
+ * Retrieve JWT token from localStorage
+ */
+export function getToken(): string | null {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(TOKEN_KEY);
+  }
+  return null;
+}
+
+/**
+ * Remove JWT token from localStorage
+ */
+export function removeToken(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+}
 
 // ============================================================================
 // Authentication API
@@ -43,7 +75,6 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'include', // Include cookies for session management
       body: JSON.stringify({ email, password }),
     });
 
@@ -54,13 +85,19 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
 
     const data = await response.json();
 
+    // Store the token if present in the response
+    if (data.access_token) {
+      storeToken(data.access_token);
+    }
+
     // Return user data in expected format
     return {
       user: {
         id: data.user?.id || data.id || '',
         email: data.user?.email || data.email || '',
         name: data.user?.name || data.name || '',
-      }
+      },
+      token: data.access_token
     };
   } catch (error) {
     console.error('Sign in error:', error);
@@ -78,7 +115,6 @@ export async function signUp(email: string, password: string, name?: string): Pr
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'include', // Include cookies for session management
       body: JSON.stringify({ email, password, name }),
     });
 
@@ -89,13 +125,19 @@ export async function signUp(email: string, password: string, name?: string): Pr
 
     const data = await response.json();
 
+    // Store the token if present in the response
+    if (data.access_token) {
+      storeToken(data.access_token);
+    }
+
     // Return user data in expected format
     return {
       user: {
         id: data.user?.id || data.id || '',
         email: data.user?.email || data.email || '',
         name: data.user?.name || data.name || '',
-      }
+      },
+      token: data.access_token
     };
   } catch (error) {
     console.error('Sign up error:', error);
@@ -108,10 +150,8 @@ export async function signUp(email: string, password: string, name?: string): Pr
  */
 export async function signOut(): Promise<void> {
   try {
-    await fetch('/api/auth/signout', {
-      method: 'POST',
-      credentials: 'include', // Include cookies for session management
-    });
+    // Clear the stored token
+    removeToken();
   } catch (error) {
     console.error('Sign out error:', error);
     // Still clear local state even if backend request fails
@@ -123,11 +163,22 @@ export async function signOut(): Promise<void> {
  */
 export async function getSession(): Promise<Session | null> {
   try {
+    const token = getToken();
+    if (!token) {
+      return null;
+    }
+
     const response = await fetch('/api/auth/me', {
-      credentials: 'include', // Include cookies for session management
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
+      // If unauthorized, remove the invalid token
+      if (response.status === 401) {
+        removeToken();
+      }
       return null;
     }
 
@@ -166,7 +217,12 @@ export async function isAuthenticated(): Promise<boolean> {
  * Get authorization headers for API requests
  */
 export function getAuthHeaders(): Record<string, string> {
-  // Authentication is handled via cookies, so no additional headers needed
+  const token = getToken();
+  if (token) {
+    return {
+      'Authorization': `Bearer ${token}`,
+    };
+  }
   return {};
 }
 
