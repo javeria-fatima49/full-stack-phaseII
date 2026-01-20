@@ -99,7 +99,7 @@ function isRetryableError(status: number): boolean {
 
 /**
  * Make an HTTP request with retry logic
- * Authentication is handled automatically via cookies set by Better Auth
+ * Authentication is handled via Authorization header with JWT token
  */
 async function request<T>(
   path: string,
@@ -113,11 +113,15 @@ async function request<T>(
 
   while (retryCount <= MAX_RETRIES) {
     try {
+      // Get auth token from localStorage
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+
       const response = await fetch(url, {
         ...fetchOptions,
         headers: {
           'Content-Type': 'application/json',
-          // Include credentials (cookies) for authentication
+          // Include Authorization header if token exists
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           ...fetchOptions.headers,
         },
         // Include credentials to send cookies with requests

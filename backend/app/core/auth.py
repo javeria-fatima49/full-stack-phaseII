@@ -39,27 +39,35 @@ def create_access_token(user_id: str, expires_delta: Optional[timedelta] = None)
 
 async def get_current_user(request: Request) -> str:
     """
-    Extract and verify user ID from Better Auth session cookie.
+    Extract and verify user ID from Better Auth session cookie or Authorization header.
 
     This dependency is used on all protected routes to:
-    1. Extract session from Better Auth cookie
+    1. Extract session from Better Auth cookie OR Authorization header
     2. Verify session validity using BETTER_AUTH_SECRET
     3. Extract user_id from session
     4. Return user_id for use in route handlers
 
     Better Auth stores session data in encrypted cookies named "better-auth.session_token"
-    The cookie contains a JWT token that can be decoded with the BETTER_AUTH_SECRET.
+    OR in Authorization header as "Bearer <token>"
+    The token contains a JWT that can be decoded with the BETTER_AUTH_SECRET.
 
     Raises:
-        HTTPException: 401 if session cookie is missing, invalid, or expired
+        HTTPException: 401 if session cookie/header is missing, invalid, or expired
 
     Returns:
         str: Authenticated user_id from Better Auth session
     """
     from app.config import settings
 
-    # Extract Better Auth session token from cookies
-    session_token = request.cookies.get("better-auth.session_token")
+    # Try to get token from Authorization header first
+    auth_header = request.headers.get("Authorization")
+    session_token = None
+
+    if auth_header and auth_header.startswith("Bearer "):
+        session_token = auth_header.replace("Bearer ", "")
+    else:
+        # Fallback to cookie
+        session_token = request.cookies.get("better-auth.session_token")
 
     if not session_token:
         raise HTTPException(

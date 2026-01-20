@@ -54,13 +54,19 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
 
     const data = await response.json();
 
+    // Store JWT token in localStorage for Authorization header
+    if (data.token) {
+      localStorage.setItem('auth_token', data.token);
+    }
+
     // Return user data in expected format
     return {
       user: {
         id: data.user?.id || data.id || '',
         email: data.user?.email || data.email || '',
         name: data.user?.name || data.name || '',
-      }
+      },
+      token: data.token
     };
   } catch (error) {
     console.error('Sign in error:', error);
@@ -89,13 +95,19 @@ export async function signUp(email: string, password: string, name?: string): Pr
 
     const data = await response.json();
 
+    // Store JWT token in localStorage for Authorization header
+    if (data.token) {
+      localStorage.setItem('auth_token', data.token);
+    }
+
     // Return user data in expected format
     return {
       user: {
         id: data.user?.id || data.id || '',
         email: data.user?.email || data.email || '',
         name: data.user?.name || data.name || '',
-      }
+      },
+      token: data.token
     };
   } catch (error) {
     console.error('Sign up error:', error);
@@ -115,6 +127,9 @@ export async function signOut(): Promise<void> {
   } catch (error) {
     console.error('Sign out error:', error);
     // Still clear local state even if backend request fails
+  } finally {
+    // Clear stored token
+    localStorage.removeItem('auth_token');
   }
 }
 
@@ -166,7 +181,15 @@ export async function isAuthenticated(): Promise<boolean> {
  * Get authorization headers for API requests
  */
 export function getAuthHeaders(): Record<string, string> {
-  // Authentication is handled via cookies, so no additional headers needed
+  // Get token from localStorage
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+
+  if (token) {
+    return {
+      'Authorization': `Bearer ${token}`
+    };
+  }
+
   return {};
 }
 
