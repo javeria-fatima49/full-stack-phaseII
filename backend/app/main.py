@@ -5,7 +5,7 @@ Configures CORS, error handlers, and routes.
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy import text
 import sys
@@ -21,8 +21,7 @@ app = FastAPI(
     title="Todo App API",
     version="1.0.0",
     description="Phase II Todo App Backend - FastAPI with JWT Authentication",
-    debug=(settings.environment == "development"),
-    redirect_slashes=False  # Disable automatic redirects to prevent HTTP redirect issues
+    debug=(settings.environment == "development")
 )
 
 
@@ -34,6 +33,23 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"] if settings.environment == "development" else ["Content-Type", "Authorization", "Set-Cookie", "Cookie"],
 )
+
+
+# Middleware to ensure HTTPS redirects in production
+@app.middleware("http")
+async def redirect_to_https(request: Request, call_next):
+    """Ensure all redirects use HTTPS in production"""
+    response = await call_next(request)
+
+    # If it's a redirect response and we're in production
+    if response.status_code in (301, 302, 303, 307, 308) and settings.environment == "production":
+        location = response.headers.get("location", "")
+        # If the redirect is to HTTP, change it to HTTPS
+        if location.startswith("http://"):
+            location = location.replace("http://", "https://", 1)
+            response.headers["location"] = location
+
+    return response
 
 
 # Custom exception handler for HTTPException
