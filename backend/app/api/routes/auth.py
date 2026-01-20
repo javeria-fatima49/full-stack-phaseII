@@ -98,12 +98,15 @@ async def signup(
         session_token = jwt.encode(session_data, settings.better_auth_secret, algorithm="HS256")
 
         # Set the Better Auth-style cookie
+        # For cross-origin requests (Vercel → HuggingFace), we need:
+        # - secure=True (required for SameSite=None)
+        # - samesite="none" (allows cross-origin cookie sending)
         response.set_cookie(
             key="better-auth.session_token",
             value=session_token,
             httponly=True,
-            secure=False,  # Set to True in production with HTTPS
-            samesite="lax",
+            secure=True,  # Required for SameSite=None and HTTPS
+            samesite="none",  # Allows cross-origin requests
             max_age=30 * 24 * 60 * 60  # 30 days
         )
 
@@ -193,12 +196,15 @@ async def signin(
         session_token = jwt.encode(session_data, settings.better_auth_secret, algorithm="HS256")
 
         # Set the Better Auth-style cookie
+        # For cross-origin requests (Vercel → HuggingFace), we need:
+        # - secure=True (required for SameSite=None)
+        # - samesite="none" (allows cross-origin cookie sending)
         response.set_cookie(
             key="better-auth.session_token",
             value=session_token,
             httponly=True,
-            secure=False,  # Set to True in production with HTTPS
-            samesite="lax",
+            secure=True,  # Required for SameSite=None and HTTPS
+            samesite="none",  # Allows cross-origin requests
             max_age=30 * 24 * 60 * 60  # 30 days
         )
 
@@ -241,11 +247,12 @@ async def signout(
     - **401**: Invalid or missing token
     """
     # Clear auth cookie
+    # Use same settings as when setting the cookie for proper deletion
     response.delete_cookie(
-        key="auth_token",
+        key="better-auth.session_token",
         httponly=True,
-        secure=False,  # Set to True in production with HTTPS
-        samesite="lax"
+        secure=True,  # Must match the cookie settings
+        samesite="none"  # Must match the cookie settings
     )
 
     return MessageResponse(message="Logged out successfully")
