@@ -62,6 +62,12 @@ export function removeToken(): void {
 }
 
 // ============================================================================
+// API Base URL
+// ============================================================================
+
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api').replace(/\/$/, '');
+
+// ============================================================================
 // Authentication API
 // ============================================================================
 
@@ -70,7 +76,10 @@ export function removeToken(): void {
  */
 export async function signIn(email: string, password: string): Promise<AuthResponse> {
   try {
-    const response = await fetch('/api/auth/signin', {
+    // Construct the full URL for auth endpoints
+    const url = new URL('/api/auth/signin', API_BASE_URL).toString();
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -110,7 +119,10 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
  */
 export async function signUp(email: string, password: string, name?: string): Promise<AuthResponse> {
   try {
-    const response = await fetch('/api/auth/signup', {
+    // Construct the full URL for auth endpoints
+    const url = new URL('/api/auth/signup', API_BASE_URL).toString();
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -168,7 +180,10 @@ export async function getSession(): Promise<Session | null> {
       return null;
     }
 
-    const response = await fetch('/api/auth/me', {
+    // Construct the full URL for auth endpoints
+    const url = new URL('/api/auth/me', API_BASE_URL).toString();
+
+    const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

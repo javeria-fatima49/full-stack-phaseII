@@ -34,7 +34,7 @@ import { getAuthHeaders } from './auth';
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api').replace(/\/$/, '') + '/';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api').replace(/\/$/, '');
 
 // Retry configuration
 const MAX_RETRIES = 3;
