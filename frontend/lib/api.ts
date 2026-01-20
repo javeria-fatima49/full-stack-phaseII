@@ -2,7 +2,7 @@
  * Centralized API Client
  *
  * Provides a unified interface for making HTTP requests to the backend API.
- * Handles authentication via JWT tokens, error handling, and request/response transformation.
+ * Handles authentication via cookies (Better Auth), error handling, and request/response transformation.
  *
  * @module lib/api
  */
@@ -28,13 +28,14 @@ import {
   ChatResponse,
   ConversationHistoryResponse,
 } from '@/types/chat';
-import { getAuthHeaders } from './auth';
 
 // ============================================================================
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api').replace(/\/$/, '');
+// Use relative URLs to go through Next.js proxy (configured in next.config.js)
+// The proxy will forward /api/* requests to the backend
+const API_BASE_URL = '/api';
 
 // Retry configuration
 const MAX_RETRIES = 3;
@@ -49,19 +50,25 @@ const RETRY_BACKOFF_MULTIPLIER = 2;
  * Build URL with query parameters
  */
 function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
-  // Remove leading slash to make path relative, so it appends to base URL
-  const relativePath = path.startsWith('/') ? path.substring(1) : path;
-  const url = new URL(relativePath, API_BASE_URL);
+  // Ensure path starts with /
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  // Construct relative URL: /api + /tasks = /api/tasks
+  let url = `${API_BASE_URL}${normalizedPath}`;
 
   if (params) {
+    const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        url.searchParams.append(key, String(value));
+        searchParams.append(key, String(value));
       }
     });
+    const queryString = searchParams.toString();
+    if (queryString) {
+      url += `?${queryString}`;
+    }
   }
 
-  return url.toString();
+  return url;
 }
 
 /**
@@ -84,7 +91,7 @@ function isRetryableError(status: number): boolean {
 
 /**
  * Make an HTTP request with retry logic
- * Authentication is handled automatically via JWT tokens
+ * Authentication is handled automatically via cookies set by Better Auth
  */
 async function request<T>(
   path: string,
@@ -98,17 +105,15 @@ async function request<T>(
 
   while (retryCount <= MAX_RETRIES) {
     try {
-      // Get authentication headers
-      const authHeaders = getAuthHeaders();
-
       const response = await fetch(url, {
         ...fetchOptions,
         headers: {
           'Content-Type': 'application/json',
-          // Include JWT token in headers
-          ...authHeaders,
+          // Include credentials (cookies) for authentication
           ...fetchOptions.headers,
         },
+        // Include credentials to send cookies with requests
+        credentials: 'include',
       });
 
       // Handle successful responses
@@ -347,6 +352,7 @@ export const taskApi: TaskApiClient = {
 export const chatApi = {
   /**
    * Send a message to the AI chatbot
+   * Backend route: POST /api/{user_id}/chat
    */
   async sendMessage(userId: string, data: ChatRequest): Promise<ChatResponse> {
     return post<ChatResponse>(`/${userId}/chat`, data);
@@ -354,6 +360,7 @@ export const chatApi = {
 
   /**
    * Get conversation history
+   * Backend route: GET /api/{user_id}/conversations/{conversation_id}
    */
   async getConversationHistory(
     userId: string,
@@ -365,9 +372,9 @@ export const chatApi = {
   },
 };
 
-// ===========================================================================
+// ============================================================================
 // Export API Client
-// ===========================================================================
+// ============================================================================
 
 export const apiClient = {
   get,

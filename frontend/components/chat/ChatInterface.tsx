@@ -41,7 +41,7 @@ export default function ChatInterface({ userId, conversationId: initialConversat
   const fetchConversationHistory = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api'}/${userId}/conversations/${conversationId}`,
+        `/api/${userId}/conversations/${conversationId}`,
         {
           credentials: 'include', // Send cookies with request
           headers: {
@@ -76,12 +76,12 @@ export default function ChatInterface({ userId, conversationId: initialConversat
     setIsLoading(true);
 
     try {
-      console.log('Sending message to:', `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api'}/${userId}/chat`);
+      console.log('Sending message to:', `/api/${userId}/chat`);
       console.log('User ID:', userId);
       console.log('Message:', userMessage);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api'}/${userId}/chat`,
+        `/api/${userId}/chat`,
         {
           method: 'POST',
           credentials: 'include', // Send cookies with request (Better Auth session)

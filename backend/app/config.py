@@ -34,10 +34,14 @@ class Settings(BaseSettings):
     cors_origins: Optional[str] = None
 
     class Config:
-        # Use absolute path to ensure the .env file is found
+        # Try multiple env file locations for flexibility
+        # Production: Uses environment variables directly (no .env file)
+        # Development: Uses .env.local file
         env_file = Path(__file__).parent.parent / ".env.local"
         env_file_encoding = "utf-8"
-        case_sensitive = False  # Changed back to False to match standard env behavior
+        case_sensitive = False
+        # Allow environment variables to override .env file
+        env_file_override = True
 
     @property
     def cors_origins_list(self) -> list[str]:
