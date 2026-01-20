@@ -52,8 +52,16 @@ const RETRY_BACKOFF_MULTIPLIER = 2;
 function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
   // Ensure path starts with /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  // Construct relative URL: /api + /tasks = /api/tasks
-  let url = `${API_BASE_URL}${normalizedPath}`;
+
+  // Add trailing slash if not present and path doesn't contain a file extension or ID parameter
+  // This matches FastAPI's default behavior
+  let finalPath = normalizedPath;
+  if (!finalPath.endsWith('/') && !finalPath.includes('.') && !finalPath.match(/\/[a-f0-9-]{36}$/i)) {
+    finalPath += '/';
+  }
+
+  // Construct relative URL: /api + /tasks/ = /api/tasks/
+  let url = `${API_BASE_URL}${finalPath}`;
 
   if (params) {
     const searchParams = new URLSearchParams();
