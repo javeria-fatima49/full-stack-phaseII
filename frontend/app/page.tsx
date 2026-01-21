@@ -19,6 +19,7 @@ import { calculateTaskStats, getRecentTasks } from '@/types/task';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // ============================================================================
 // Component
@@ -28,6 +29,14 @@ import { Card, CardContent } from '@/components/ui/card';
  * Dashboard page component
  */
 export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
+  );
+}
+
+function DashboardContent() {
   const { tasks, isLoading, error } = useTasks();
 
   // Loading state

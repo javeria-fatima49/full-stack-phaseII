@@ -38,14 +38,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
+      // Check if token exists in localStorage
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+
+      if (!token) {
+        // No token, user is not authenticated
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      // Token exists, verify it by fetching user data
       const userData = await getCurrentUser();
       if (userData) {
         setUser(userData);
       } else {
+        // Token is invalid or expired, clear it
+        localStorage.removeItem('auth_token');
         setUser(null);
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
+      // Clear invalid token
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token');
+      }
       setUser(null);
     } finally {
       setLoading(false);
