@@ -138,8 +138,15 @@ export async function signOut(): Promise<void> {
  */
 export async function getSession(): Promise<Session | null> {
   try {
+    // Get token from localStorage
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+
     const response = await fetch('/api/auth/me', {
       credentials: 'include', // Include cookies for session management
+      headers: {
+        // Include Authorization header if token exists
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
     });
 
     if (!response.ok) {
