@@ -38,7 +38,7 @@ interface AuthResponse {
  */
 export async function signIn(email: string, password: string): Promise<AuthResponse> {
   try {
-    const response = await fetch('/api/auth/signin', {
+    const response = await fetch('/api/auth/signin/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
  */
 export async function signUp(email: string, password: string, name?: string): Promise<AuthResponse> {
   try {
-    const response = await fetch('/api/auth/signup', {
+    const response = await fetch('/api/auth/signup/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -120,7 +120,7 @@ export async function signUp(email: string, password: string, name?: string): Pr
  */
 export async function signOut(): Promise<void> {
   try {
-    await fetch('/api/auth/signout', {
+    await fetch('/api/auth/signout/', {
       method: 'POST',
       credentials: 'include', // Include cookies for session management
     });
@@ -141,7 +141,7 @@ export async function getSession(): Promise<Session | null> {
     // Get token from localStorage
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-    const response = await fetch('/api/auth/me', {
+    const response = await fetch('/api/auth/me/', {
       credentials: 'include', // Include cookies for session management
       headers: {
         // Include Authorization header if token exists

@@ -52,7 +52,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
   const { status = 'all', sortField = 'created_at', sortOrder = 'desc' } = options;
 
   // Build cache key from options
-  const cacheKey = `/tasks?status=${status}&sortField=${sortField}&sortOrder=${sortOrder}`;
+  const cacheKey = `/tasks/?status=${status}&sortField=${sortField}&sortOrder=${sortOrder}`;
 
   // Fetch tasks with SWR
   const { data, error, mutate: swrMutate } = useSWR<Task[]>(
@@ -72,7 +72,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
     const newTask = await taskApi.create({ title, description });
 
     // Revalidate all task lists
-    await mutate((key) => typeof key === 'string' && key.startsWith('/tasks'));
+    await mutate((key) => typeof key === 'string' && key.startsWith('/tasks/'));
 
     return newTask;
   };
@@ -88,8 +88,8 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
 
     // Revalidate all task lists and the specific task
     await Promise.all([
-      mutate((key) => typeof key === 'string' && key.startsWith('/tasks')),
-      mutate(`/tasks/${id}`),
+      mutate((key) => typeof key === 'string' && key.startsWith('/tasks/')),
+      mutate(`/tasks/${id}/`),
     ]);
 
     return updatedTask;
@@ -102,7 +102,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
     await taskApi.delete(id);
 
     // Revalidate all task lists
-    await mutate((key) => typeof key === 'string' && key.startsWith('/tasks'));
+    await mutate((key) => typeof key === 'string' && key.startsWith('/tasks/'));
   };
 
   /**
@@ -122,8 +122,8 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
 
       // Revalidate all task lists and the specific task
       await Promise.all([
-        mutate((key) => typeof key === 'string' && key.startsWith('/tasks')),
-        mutate(`/tasks/${id}`),
+        mutate((key) => typeof key === 'string' && key.startsWith('/tasks/')),
+        mutate(`/tasks/${id}/`),
       ]);
 
       return updatedTask;
@@ -150,7 +150,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
  * Hook for fetching a single task by ID
  */
 export function useTask(id: string | null): UseSingleTaskReturn {
-  const cacheKey = id ? `/tasks/${id}` : null;
+  const cacheKey = id ? `/tasks/${id}/` : null;
 
   const { data, error, mutate } = useSWR<Task>(
     cacheKey,

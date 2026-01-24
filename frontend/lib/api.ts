@@ -285,7 +285,7 @@ export const taskApi: TaskApiClient = {
       queryParams.sort_order = params.sortOrder;
     }
 
-    const data = await get<Task[]>('/tasks', { params: queryParams });
+    const data = await get<Task[]>('/tasks/', { params: queryParams });
 
     if (!isTaskArray(data)) {
       throw new Error('Invalid response: expected array of tasks');
@@ -298,7 +298,7 @@ export const taskApi: TaskApiClient = {
    * Get a single task by ID
    */
   async get(id: string): Promise<Task> {
-    const data = await get<Task>(`/tasks/${id}`);
+    const data = await get<Task>(`/tasks/${id}/`);
 
     if (!isTask(data)) {
       throw new Error('Invalid response: expected task object');
@@ -311,7 +311,7 @@ export const taskApi: TaskApiClient = {
    * Create a new task
    */
   async create(data: CreateTaskRequest): Promise<Task> {
-    const task = await post<Task>('/tasks', data);
+    const task = await post<Task>('/tasks/', data);
 
     if (!isTask(task)) {
       throw new Error('Invalid response: expected task object');
@@ -324,7 +324,7 @@ export const taskApi: TaskApiClient = {
    * Update an existing task
    */
   async update(id: string, data: UpdateTaskRequest): Promise<Task> {
-    const task = await put<Task>(`/tasks/${id}`, data);
+    const task = await put<Task>(`/tasks/${id}/`, data);
 
     if (!isTask(task)) {
       throw new Error('Invalid response: expected task object');
@@ -337,7 +337,7 @@ export const taskApi: TaskApiClient = {
    * Delete a task
    */
   async delete(id: string): Promise<void> {
-    await del<void>(`/tasks/${id}`);
+    await del<void>(`/tasks/${id}/`);
   },
 
   /**
