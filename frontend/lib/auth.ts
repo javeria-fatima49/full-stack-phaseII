@@ -141,14 +141,22 @@ export async function getSession(): Promise<Session | null> {
     // Get token from localStorage
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-    const response = await fetch('/api/auth/me/', {
-      credentials: 'include', // Include cookies for session management
-      headers: {
-        // Include Authorization header if token exists
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      },
-    });
-
+    // const response = await fetch('/api/auth/me/', {
+    //   credentials: 'include', // Include cookies for session management
+    //   headers: {
+    //     // Include Authorization header if token exists
+    //     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    //   },
+    // });
+    const response = await fetch(
+  `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
+  {
+    credentials: 'include',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  }
+);
     if (!response.ok) {
       return null;
     }
